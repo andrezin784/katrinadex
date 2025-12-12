@@ -1,0 +1,74 @@
+<svg width="300" height="400" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5B0BFF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00D1FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FDBCB4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F4A688;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#00D1FF;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#5B0BFF;stop-opacity:0.4" />
+    </radialGradient>
+    <filter id="cyberGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Hair -->
+  <path d="M150 80 Q100 40 80 80 Q60 120 80 160 Q100 200 150 180 Q200 200 220 160 Q240 120 220 80 Q200 40 150 80 Z" fill="url(#hairGradient)" filter="url(#cyberGlow)"/>
+
+  <!-- Face -->
+  <ellipse cx="150" cy="140" rx="60" ry="70" fill="url(#skinGradient)"/>
+
+  <!-- Eyes -->
+  <ellipse cx="135" cy="125" rx="8" ry="10" fill="url(#eyeGlow)" filter="url(#cyberGlow)"/>
+  <ellipse cx="165" cy="125" rx="8" ry="10" fill="url(#eyeGlow)" filter="url(#cyberGlow)"/>
+  <ellipse cx="135" cy="125" rx="3" ry="4" fill="#000"/>
+  <ellipse cx="165" cy="125" rx="3" ry="4" fill="#000"/>
+
+  <!-- Eyebrows (cyberpunk style) -->
+  <rect x="125" y="110" width="20" height="3" rx="1.5" fill="#5B0BFF" filter="url(#cyberGlow)"/>
+  <rect x="155" y="110" width="20" height="3" rx="1.5" fill="#5B0BFF" filter="url(#cyberGlow)"/>
+
+  <!-- Nose -->
+  <ellipse cx="150" cy="140" rx="2" ry="3" fill="#E8B4A4"/>
+
+  <!-- Mouth -->
+  <path d="M140 160 Q150 170 160 160" stroke="#C0392B" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Cyberpunk glasses -->
+  <rect x="115" y="115" width="25" height="20" rx="12" ry="10" fill="none" stroke="#00D1FF" stroke-width="3" filter="url(#cyberGlow)"/>
+  <rect x="160" y="115" width="25" height="20" rx="12" ry="10" fill="none" stroke="#00D1FF" stroke-width="3" filter="url(#cyberGlow)"/>
+  <line x1="140" y1="125" x2="160" y2="125" stroke="#00D1FF" stroke-width="3" filter="url(#cyberGlow)"/>
+
+  <!-- Body/Clothes -->
+  <rect x="120" y="200" width="60" height="80" rx="30" ry="20" fill="#1A1A1A"/>
+  <rect x="120" y="200" width="60" height="80" rx="30" ry="20" fill="none" stroke="#5B0BFF" stroke-width="2" filter="url(#cyberGlow)"/>
+
+  <!-- Cyberpunk details on clothes -->
+  <rect x="135" y="220" width="30" height="4" rx="2" fill="#00D1FF" filter="url(#cyberGlow)"/>
+  <rect x="135" y="230" width="30" height="4" rx="2" fill="#00D1FF" filter="url(#cyberGlow)"/>
+  <circle cx="150" cy="245" r="8" fill="#5B0BFF" filter="url(#cyberGlow)"/>
+  <circle cx="150" cy="245" r="4" fill="#00D1FF"/>
+
+  <!-- Arms -->
+  <ellipse cx="110" cy="230" rx="15" ry="40" fill="url(#skinGradient)"/>
+  <ellipse cx="190" cy="230" rx="15" ry="40" fill="url(#skinGradient)"/>
+
+  <!-- Hands -->
+  <ellipse cx="110" cy="270" rx="12" ry="15" fill="url(#skinGradient)"/>
+  <ellipse cx="190" cy="270" rx="12" ry="15" fill="url(#skinGradient)"/>
+
+  <!-- Cyberpunk arm details -->
+  <rect x="100" y="220" width="4" height="30" rx="2" fill="#00D1FF" filter="url(#cyberGlow)"/>
+  <rect x="196" y="220" width="4" height="30" rx="2" fill="#00D1FF" filter="url(#cyberGlow)"/>
+</svg>

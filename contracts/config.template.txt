@@ -1,0 +1,22 @@
+# ===========================================
+# KATRINADEX - CONFIGURAÇÃO DE DEPLOY
+# ===========================================
+# 
+# INSTRUÇÕES:
+# 1. Copie este arquivo para .env
+# 2. Preencha com seus valores reais
+# 3. NUNCA commite o arquivo .env no git
+# 4. NUNCA compartilhe sua chave privada com ninguém
+#
+# ===========================================
+
+# Sua chave privada (SEM o prefixo 0x)
+# ⚠️ MANTENHA ISSO SEGURO - NUNCA COMPARTILHE
+PRIVATE_KEY=sua_chave_privada_aqui
+
+# Sua carteira que vai receber as taxas do protocolo
+OWNER_ADDRESS=0xSuaCarteiraAqui
+
+# RPC URL da rede (Base Sepolia Testnet)
+RPC_URL=https://sepolia.base.org
+
