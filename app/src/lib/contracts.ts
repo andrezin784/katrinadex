@@ -3,11 +3,11 @@
 export const CONTRACTS_CONFIG = {
   84532: {
     name: 'Base Sepolia',
-    COMPLIANCE_ORACLE: '0x024F2880968C7fc81BfD706352d384539BC55f86', // ✅ Updated with security improvements
+    COMPLIANCE_ORACLE: '0x0000000000000000000000000000000000000000', // Não configurado (versão anterior)
     MIXER_VERIFIER: '0x0b1e0846c410e81E1901f58032805FE7D8119E66',
     LICIT_PROOF_VERIFIER: '0xF8061fFd76F27ca74294B943c0150751Ed881898',
-    MIXER: '0xbc4e79Ab6B1F12ba05FF8CedBbF06259aa916Df8', // ✅ Updated with security improvements
-    RELAYER: '0xCAA4BE860B561BDAF7B1f25fc5c9Dc0Df22b043C', // ✅ Updated with security improvements
+    MIXER: '0x46f123107B2E4f9042de8c6Fb8762f8824ef90f4', // ✅ Versão anterior que estava funcionando
+    RELAYER: '0x86F4303D695fF43210049EDD49bCaeE99f45810e', // ✅ Versão anterior que estava funcionando
     USDC: '0xA0b86a33E6441e88C5F2712C3e9b74B6e44e8e77',
     ETH_ADDRESS: '0x0000000000000000000000000000000000000000',
   },
