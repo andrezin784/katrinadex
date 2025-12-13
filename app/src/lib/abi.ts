@@ -137,3 +137,46 @@ export const LICIT_PROOF_VERIFIER_ABI = [
     "type": "function"
   }
 ] as const;
+
+// GaslessRelayer ABI
+export const GASLESS_RELAYER_ABI = [
+  {
+    "inputs": [
+      { "internalType": "address", "name": "to", "type": "address" },
+      { "internalType": "uint256", "name": "poolAmount", "type": "uint256" },
+      { "internalType": "uint256", "name": "poolIndex", "type": "uint256" },
+      { "internalType": "address", "name": "token", "type": "address" },
+      { "internalType": "uint256[2]", "name": "proofA", "type": "uint256[2]" },
+      { "internalType": "uint256[2][2]", "name": "proofB", "type": "uint256[2][2]" },
+      { "internalType": "uint256[2]", "name": "proofC", "type": "uint256[2]" },
+      { "internalType": "uint256[3]", "name": "proofInput", "type": "uint256[3]" },
+      { "internalType": "bytes", "name": "signature", "type": "bytes" },
+      { "internalType": "uint256", "name": "deadline", "type": "uint256" }
+    ],
+    "name": "withdrawGasless",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "getNonce",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }],
+    "name": "calculateGaslessFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "allowedPoolAmounts",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const;

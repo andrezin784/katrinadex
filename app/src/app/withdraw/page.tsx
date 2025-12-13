@@ -9,13 +9,14 @@ import { ArrowLeft, ShieldCheck, Loader2, Banknote, Check, Wallet, AlertTriangle
 import { toast } from 'sonner';
 import { useAccount, useConfig } from 'wagmi';
 import { formatEther, isAddress, toHex } from 'viem';
-import { writeContract as writeContractAction, waitForTransactionReceipt, readContract } from '@wagmi/core';
+import { writeContract as writeContractAction, waitForTransactionReceipt, readContract, signTypedData } from '@wagmi/core';
 import { CONTRACTS_CONFIG, getPoolSizes } from '@/lib/contracts';
-import { MIXER_ABI } from '@/lib/abi';
+import { MIXER_ABI, GASLESS_RELAYER_ABI } from '@/lib/abi';
 import { useRouter } from 'next/navigation';
 import { generateMixerProof, formatProofForContract } from '@/lib/zk';
 import { buildPoseidon } from 'circomlibjs';
 import { SecurityWarning } from '@/components/SecurityWarning';
+import { createWithdrawGaslessTypedData, calculateFinalAmount } from '@/lib/eip712';
 
 export default function WithdrawPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function WithdrawPage() {
   const [statusMessage, setStatusMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
+  const [gaslessEnabled, setGaslessEnabled] = useState(false);
   
   // Get pool sizes based on chain
   const poolSizes = getPoolSizes(chain?.id ?? 84532);
@@ -93,6 +95,12 @@ export default function WithdrawPage() {
       return;
     }
 
+    // Gasless withdraw flow
+    if (gaslessEnabled) {
+      return handleGaslessWithdraw();
+    }
+
+    // Normal withdraw flow
     try {
       const contracts = CONTRACTS_CONFIG[(chain?.id as keyof typeof CONTRACTS_CONFIG) ?? 84532];
 
@@ -313,6 +321,159 @@ export default function WithdrawPage() {
     }
   };
 
+  const handleGaslessWithdraw = async () => {
+    if (!parsedNote || !recipient || !isConnected || !address || !chain) return;
+
+    try {
+      setLoading(true);
+      setStatusMessage("Preparing gasless withdrawal...");
+
+      const contracts = CONTRACTS_CONFIG[(chain.id as keyof typeof CONTRACTS_CONFIG) ?? 84532];
+      const gaslessRelayerAddress = contracts.GASLESS_RELAYER as `0x${string}`;
+
+      if (!gaslessRelayerAddress || gaslessRelayerAddress === '0x0000000000000000000000000000000000000000') {
+        toast.error("Gasless relayer not configured for this network");
+        setLoading(false);
+        return;
+      }
+
+      // Find pool index and token address (same logic as normal withdraw)
+      const isArc = chain.id === 5042002;
+      let tokenAddress: `0x${string}`;
+      let poolIndex: number;
+
+      if (parsedNote.token === 'ETH') {
+        tokenAddress = contracts.ETH_ADDRESS as `0x${string}`;
+        const tokenPools = isArc ? poolSizes.ETH : poolSizes.ETH;
+        poolIndex = tokenPools.findIndex(p => p.value === parsedNote.amount);
+      } else if (parsedNote.token === 'USDC') {
+        tokenAddress = contracts.USDC as `0x${string}`;
+        const tokenPools = isArc ? poolSizes.USDC : poolSizes.USDC;
+        poolIndex = tokenPools.findIndex(p => p.value === parsedNote.amount);
+      } else {
+        tokenAddress = contracts.EURC as `0x${string}`;
+        poolIndex = poolSizes.EURC.findIndex(p => p.value === parsedNote.amount);
+      }
+
+      if (poolIndex === -1) {
+        toast.error("Invalid pool amount");
+        setLoading(false);
+        return;
+      }
+
+      // Generate ZK proof (same as normal withdraw)
+      setStatusMessage("Generating ZK Proof...");
+      const poseidon = await buildPoseidon();
+      const F = poseidon.F;
+      const secretBigInt = BigInt(parsedNote.secret);
+      const nullifierBigInt = BigInt(parsedNote.nullifier);
+      
+      const commitment = F.toObject(poseidon([nullifierBigInt, secretBigInt]));
+      const nullifierHash = F.toObject(poseidon([nullifierBigInt]));
+      
+      const input = {
+        root: commitment.toString(),
+        nullifierHash: nullifierHash.toString(),
+        nullifier: nullifierBigInt.toString(),
+        secret: secretBigInt.toString()
+      };
+
+      const proofData = await generateMixerProof(input);
+      if (!proofData) {
+        throw new Error("Failed to generate proof");
+      }
+
+      const { proof, publicSignals } = proofData;
+      const formattedProof = formatProofForContract(proof, publicSignals);
+      if (!formattedProof) {
+        throw new Error("Invalid proof format");
+      }
+
+      // Get nonce from relayer
+      setStatusMessage("Getting nonce...");
+      const nonce = await readContract(config, {
+        address: gaslessRelayerAddress,
+        abi: GASLESS_RELAYER_ABI,
+        functionName: 'getNonce',
+        args: [address],
+      }) as bigint;
+
+      // Create EIP-712 signature
+      setStatusMessage("Signing message...");
+      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour from now
+      const poolAmount = BigInt(parsedNote.amount);
+
+      const typedData = createWithdrawGaslessTypedData(
+        chain.id,
+        gaslessRelayerAddress,
+        {
+          to: recipient,
+          poolAmount,
+          poolIndex: BigInt(poolIndex),
+          token: tokenAddress,
+          nonce,
+          deadline,
+        }
+      );
+
+      const signature = await signTypedData(config, typedData);
+      
+      // Send to relayer API
+      setStatusMessage("Submitting to relayer...");
+      const response = await fetch('/api/relay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipient,
+          poolAmount: poolAmount.toString(),
+          poolIndex,
+          token: tokenAddress,
+          proofA: formattedProof.a.map(x => x.toString()),
+          proofB: formattedProof.b.map(row => row.map(x => x.toString())),
+          proofC: formattedProof.c.map(x => x.toString()),
+          proofInput: formattedProof.input.map(x => x.toString()),
+          signature,
+          deadline: deadline.toString(),
+          chainId: chain.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Relayer request failed');
+      }
+
+      const { txHash: relayTxHash } = await response.json();
+      setTxHash(relayTxHash as `0x${string}`);
+      setStatusMessage("Transaction submitted! Waiting for confirmation...");
+      toast.info("Gasless withdrawal submitted. Waiting for confirmation...");
+
+      // Poll for transaction receipt
+      try {
+        const receipt = await waitForTransactionReceipt(config, { hash: relayTxHash });
+        if (receipt.status === 'success') {
+          setSuccess(true);
+          toast.success("Gasless Withdrawal Successful!", {
+            description: "Funds have been sent to your clean address.",
+          });
+        } else {
+          toast.error("Transaction was reverted");
+        }
+      } catch (receiptError: any) {
+        console.error("Receipt error:", receiptError);
+        toast.warning("Transaction sent but confirmation failed. Check the explorer.", {
+          duration: 10000,
+        });
+      }
+
+      setLoading(false);
+    } catch (error: any) {
+      console.error("Gasless withdraw failed:", error);
+      toast.error(error?.message || "Gasless withdrawal failed");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 max-w-lg mx-auto relative">
       {/* Security Warning */}
@@ -451,6 +612,50 @@ export default function WithdrawPage() {
                   placeholder="0x..."
                   className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#00F5FF]/50 font-mono"
                 />
+              </div>
+
+              {/* Gasless Withdraw Toggle */}
+              <div className="bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={gaslessEnabled}
+                    onChange={(e) => setGaslessEnabled(e.target.checked)}
+                    className="w-5 h-5 rounded border-white/20 bg-black/40 text-[#00F5FF] focus:ring-[#00F5FF] focus:ring-offset-0"
+                  />
+                  <div className="ml-3 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-medium">Gasless Withdraw</span>
+                      <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">0.4% fee</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      No gas required! Fee of 0.4% will be deducted from withdrawal amount.
+                    </p>
+                    {gaslessEnabled && parsedNote && (
+                      <div className="mt-2 text-xs text-gray-300">
+                        {(() => {
+                          const poolAmount = BigInt(parsedNote.amount);
+                          const { finalAmount, gaslessFee } = calculateFinalAmount(poolAmount);
+                          const isArc = chain?.id === 5042002;
+                          const use18Decimals = parsedNote.token === 'ETH' || (parsedNote.token === 'USDC' && isArc);
+                          const tokenSymbol = parsedNote.token === 'ETH' ? (isArc ? 'USDC' : 'ETH') : parsedNote.token;
+                          const finalDisplay = use18Decimals
+                            ? formatEther(finalAmount)
+                            : (Number(finalAmount) / 1000000).toFixed(6);
+                          const feeDisplay = use18Decimals
+                            ? formatEther(gaslessFee)
+                            : (Number(gaslessFee) / 1000000).toFixed(6);
+                          return (
+                            <div className="space-y-1">
+                              <div>You receive: <span className="text-green-400 font-bold">{finalDisplay} {tokenSymbol}</span></div>
+                              <div>Gasless fee: <span className="text-yellow-400">{feeDisplay} {tokenSymbol}</span></div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                </label>
               </div>
 
               <div className="bg-yellow-500/10 p-4 rounded-xl border border-yellow-500/20">
