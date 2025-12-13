@@ -27,6 +27,7 @@ import { createCommitment } from '@/lib/zk';
 import { useReadContract } from 'wagmi';
 import { EthIcon, UsdcIcon, EurcIcon } from '@/components/ui/icons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SecurityWarning } from '@/components/SecurityWarning';
 
 const ERC20_ABI = [
   {
@@ -427,6 +428,9 @@ export default function DepositPage() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6 max-w-lg mx-auto">
+      {/* Security Warning */}
+      <SecurityWarning />
+      
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <Link href="/" className="p-2 rounded-full hover:bg-white/5 transition-colors">

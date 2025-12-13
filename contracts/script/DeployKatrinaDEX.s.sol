@@ -3,7 +3,6 @@ pragma solidity ^0.8.26;
 
 import {Script, console} from "forge-std/Script.sol";
 import {KatrinaDEXMixer} from "../src/Mixer.sol";
-import {MixerVerifier} from "../src/MixerVerifier.sol";
 import {LicitProofVerifier} from "../src/LicitProofVerifier.sol";
 import {ComplianceOracle} from "../src/ComplianceOracle.sol";
 import {KatrinaDEXRelayer} from "../src/Relayer.sol";
@@ -99,26 +98,40 @@ contract DeployKatrinaDEX is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
+        // Use existing verifiers (already deployed and verified)
+        address mixerVerifierAddress;
+        address licitProofVerifierAddress;
+        
+        if (chainId == 84532) { // Base Sepolia
+            mixerVerifierAddress = 0x0b1e0846c410e81E1901f58032805FE7D8119E66;
+            licitProofVerifierAddress = 0xF8061fFd76F27ca74294B943c0150751Ed881898;
+        } else if (chainId == 5042002) { // Arc Testnet
+            mixerVerifierAddress = 0xF53F0115dd476fab6Bf3F58B33Ad6f88402f23C7;
+            licitProofVerifierAddress = 0xD3CfF6CB9308d6e20E2c07d6258491e8e019cFff;
+        } else {
+            revert("Unknown chain ID");
+        }
+
+        console.log("Using existing MixerVerifier at:", mixerVerifierAddress);
+        console.log("Using existing LicitProofVerifier at:", licitProofVerifierAddress);
+
         // 1. Deploy ComplianceOracle (for sanctions/blacklist checking)
         ComplianceOracle complianceOracle = new ComplianceOracle();
         console.log("ComplianceOracle deployed at:", address(complianceOracle));
 
-        // 2. Deploy MixerVerifier (for ZK proof verification)
-        MixerVerifier mixerVerifier = new MixerVerifier();
-        console.log("MixerVerifier deployed at:", address(mixerVerifier));
+        // 2. Update LicitProofVerifier to use new ComplianceOracle
+        // Note: This requires the verifier to have setComplianceOracle function
+        // If it doesn't, we'll need to deploy a new LicitProofVerifier
+        try LicitProofVerifier(licitProofVerifierAddress).setComplianceOracle(address(complianceOracle)) {
+            console.log("LicitProofVerifier configured with new ComplianceOracle");
+        } catch {
+            console.log("Warning: Could not update LicitProofVerifier. Using existing configuration.");
+        }
 
-        // 3. Deploy LicitProofVerifier and configure it with ComplianceOracle
-        LicitProofVerifier licitProofVerifier = new LicitProofVerifier();
-        console.log("LicitProofVerifier deployed at:", address(licitProofVerifier));
-        
-        // Configure LicitProofVerifier to use ComplianceOracle
-        licitProofVerifier.setComplianceOracle(address(complianceOracle));
-        console.log("LicitProofVerifier configured with ComplianceOracle");
-
-        // 4. Deploy mixer with pool sizes
+        // 3. Deploy mixer with pool sizes
         KatrinaDEXMixer mixer = new KatrinaDEXMixer(
-            address(mixerVerifier),
-            address(licitProofVerifier),
+            mixerVerifierAddress,
+            licitProofVerifierAddress,
             usdcAddress,
             eurcAddress,
             ethPools,
@@ -127,7 +140,7 @@ contract DeployKatrinaDEX is Script {
         );
         console.log("KatrinaDEXMixer deployed at:", address(mixer));
 
-        // 5. Deploy relayer
+        // 4. Deploy relayer
         KatrinaDEXRelayer relayer = new KatrinaDEXRelayer(address(mixer), usdcAddress, eurcAddress);
         console.log("KatrinaDEXRelayer deployed at:", address(relayer));
 
@@ -137,10 +150,10 @@ contract DeployKatrinaDEX is Script {
         console.log("\n=== KATRINADEX DEPLOYMENT SUMMARY ===");
         console.log("Chain ID:", chainId);
         console.log("ComplianceOracle:", address(complianceOracle));
-        console.log("MixerVerifier:", address(mixerVerifier));
-        console.log("LicitProofVerifier:", address(licitProofVerifier));
-        console.log("KatrinaDEXMixer:", address(mixer));
-        console.log("KatrinaDEXRelayer:", address(relayer));
+        console.log("MixerVerifier (existing):", mixerVerifierAddress);
+        console.log("LicitProofVerifier (existing):", licitProofVerifierAddress);
+        console.log("KatrinaDEXMixer (NEW):", address(mixer));
+        console.log("KatrinaDEXRelayer (NEW):", address(relayer));
         console.log("=====================================");
         console.log("\n=== COMPLIANCE COMMANDS ===");
         console.log("Blacklist: cast send <ORACLE> 'addToBlacklist(address,string)' <ADDR> 'reason'");

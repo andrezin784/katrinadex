@@ -200,16 +200,20 @@ contract KatrinaDEXMixer is ERC20, Ownable, ReentrancyGuard {
         uint256 amount,
         uint256 poolIndex
     ) external nonReentrant {
+        // ========== CHECKS ==========
         // Verify pool index and amount based on token
         if (token == ETH) {
             require(poolIndex < ethPoolSizes.length, "Invalid pool");
             require(amount == ethPoolSizes[poolIndex], "Amount mismatch");
+            require(ethPoolBalances[poolIndex] >= amount, "No ETH");
         } else if (token == address(USDC)) {
             require(poolIndex < usdcPoolSizes.length, "Invalid pool");
             require(amount == usdcPoolSizes[poolIndex], "Amount mismatch");
+            require(usdcPoolBalances[poolIndex] >= amount, "No USDC");
         } else if (token == address(EURC)) {
             require(poolIndex < eurcPoolSizes.length, "Invalid pool");
             require(amount == eurcPoolSizes[poolIndex], "Amount mismatch");
+            require(eurcPoolBalances[poolIndex] >= amount, "No EURC");
         } else {
             revert("Unsupported");
         }
@@ -221,7 +225,6 @@ contract KatrinaDEXMixer is ERC20, Ownable, ReentrancyGuard {
         // proofInput[2] = nullifierHash
         
         // Verify commitment exists
-        // Reading from index 1 (root)
         bytes32 commitment = bytes32(proofInput[1]);
         require(commitments[commitment], "Unknown");
 
@@ -232,22 +235,30 @@ contract KatrinaDEXMixer is ERC20, Ownable, ReentrancyGuard {
         );
 
         // Extract nullifier hash from proof input
-        // Reading from index 2 (nullifierHash input) - could also use index 0 (output)
         bytes32 nullifierHash = bytes32(proofInput[2]);
         require(!nullifiers[nullifierHash], "Used");
-
-        // Mark nullifier hash as used
-        nullifiers[nullifierHash] = true;
 
         // Calculate fee
         uint256 fee = (amount * FEE_BASIS_POINTS) / BASIS_POINTS;
         uint256 netAmount = amount - fee;
 
-        // Transfer tokens
-        if (token == ETH) {
-            require(ethPoolBalances[poolIndex] >= amount, "No ETH");
-            ethPoolBalances[poolIndex] -= amount;
+        // ========== EFFECTS ==========
+        // Update ALL state variables BEFORE any external calls (CEI pattern)
+        // Mark nullifier hash as used (prevents replay attacks)
+        nullifiers[nullifierHash] = true;
 
+        // Update pool balances BEFORE transfers
+        if (token == ETH) {
+            ethPoolBalances[poolIndex] -= amount;
+        } else if (token == address(USDC)) {
+            usdcPoolBalances[poolIndex] -= amount;
+        } else if (token == address(EURC)) {
+            eurcPoolBalances[poolIndex] -= amount;
+        }
+
+        // ========== INTERACTIONS ==========
+        // Only after all state updates, perform external calls
+        if (token == ETH) {
             // Send to recipient
             (bool success,) = recipient.call{value: netAmount}("");
             require(success, "ETH fail");
@@ -258,9 +269,6 @@ contract KatrinaDEXMixer is ERC20, Ownable, ReentrancyGuard {
                 require(feeSuccess, "Fee fail");
             }
         } else if (token == address(USDC)) {
-            require(usdcPoolBalances[poolIndex] >= amount, "No USDC");
-            usdcPoolBalances[poolIndex] -= amount;
-
             // Transfer to recipient
             require(USDC.transfer(recipient, netAmount), "USDC fail");
 
@@ -269,9 +277,6 @@ contract KatrinaDEXMixer is ERC20, Ownable, ReentrancyGuard {
                 require(USDC.transfer(owner(), fee), "Fee fail");
             }
         } else if (token == address(EURC)) {
-            require(eurcPoolBalances[poolIndex] >= amount, "No EURC");
-            eurcPoolBalances[poolIndex] -= amount;
-
             // Transfer to recipient
             require(EURC.transfer(recipient, netAmount), "EURC fail");
 
@@ -279,8 +284,6 @@ contract KatrinaDEXMixer is ERC20, Ownable, ReentrancyGuard {
             if (fee > 0) {
                 require(EURC.transfer(owner(), fee), "Fee fail");
             }
-        } else {
-            revert("Unsupported");
         }
 
         emit Withdrawal(nullifierHash, token, netAmount, recipient);
