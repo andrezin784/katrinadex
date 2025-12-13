@@ -120,20 +120,33 @@ contract KatrinaDEXRelayer is Ownable, ReentrancyGuard {
     }
 
     // Relayer can claim earnings
+    // Following CEI pattern: Checks -> Effects -> Interactions
     function claimETHEarnings() external nonReentrant {
+        // ========== CHECKS ==========
         uint256 amount = ethEarnings[msg.sender];
         require(amount > 0, "No ETH earnings to claim");
 
+        // ========== EFFECTS ==========
+        // Update state BEFORE external call (prevents reentrancy)
         ethEarnings[msg.sender] = 0;
+
+        // ========== INTERACTIONS ==========
+        // External call only after state update
         (bool success,) = msg.sender.call{value: amount}("");
         require(success, "ETH transfer failed");
     }
 
     function claimUSDCEarnings() external nonReentrant {
+        // ========== CHECKS ==========
         uint256 amount = usdcEarnings[msg.sender];
         require(amount > 0, "No USDC earnings to claim");
 
+        // ========== EFFECTS ==========
+        // Update state BEFORE external call (prevents reentrancy)
         usdcEarnings[msg.sender] = 0;
+
+        // ========== INTERACTIONS ==========
+        // External call only after state update
         require(USDC.transfer(msg.sender, amount), "USDC transfer failed");
     }
 

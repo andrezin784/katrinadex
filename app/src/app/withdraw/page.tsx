@@ -15,6 +15,7 @@ import { MIXER_ABI } from '@/lib/abi';
 import { useRouter } from 'next/navigation';
 import { generateMixerProof, formatProofForContract } from '@/lib/zk';
 import { buildPoseidon } from 'circomlibjs';
+import { SecurityWarning } from '@/components/SecurityWarning';
 
 export default function WithdrawPage() {
   const router = useRouter();
@@ -314,6 +315,8 @@ export default function WithdrawPage() {
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 max-w-lg mx-auto relative">
+      {/* Security Warning */}
+      <SecurityWarning />
       {/* Success Animation Overlay */}
       <AnimatePresence>
         {success && (
