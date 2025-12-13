@@ -139,3 +139,5 @@ async function seedLiquidity() {
 
 // Executar seeding
 seedLiquidity().catch(console.error);
+
+

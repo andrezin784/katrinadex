@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@pinata/sdk": "^2.1.0",
+    "content-hash": "^2.5.2",
+    "form-data": "^4.0.5",
+    "pinata-web3": "^0.5.4"
+  }
+}

@@ -246,3 +246,5 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
   <strong>Feito com ❤️ pela comunidade crypto brasileira</strong><br>
   <em>Privacidade + Compliance = Futuro da Web3</em>
 </p>
+
+

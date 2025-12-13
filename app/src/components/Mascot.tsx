@@ -95,3 +95,5 @@ export default function Mascot({ className }: { className?: string }) {
   );
 }
 
+
+

@@ -34,3 +34,5 @@ PRIVATE_KEY=$PRIVATE_KEY forge script script/DeployKatrinaDEX.s.sol:DeployKatrin
 echo ""
 echo "✅ Deploy finalizado!"
 
+
+

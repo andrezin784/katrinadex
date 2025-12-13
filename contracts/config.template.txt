@@ -20,3 +20,5 @@ OWNER_ADDRESS=0xSuaCarteiraAqui
 # RPC URL da rede (Base Sepolia Testnet)
 RPC_URL=https://sepolia.base.org
 
+
+
