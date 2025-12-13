@@ -1,6 +1,6 @@
 # 📋 Plano de Deploy - KatrinaDEX
 
-**Data:** $(date +%Y-%m-%d)  
+**Data:** 2025-12-13  
 **Branch de origem:** `develop`  
 **Branch de destino:** `main`  
 **Status:** ⏳ Aguardando aprovação
