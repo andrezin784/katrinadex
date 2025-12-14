@@ -331,7 +331,14 @@ export default function WithdrawPage() {
       const contracts = CONTRACTS_CONFIG[(chain.id as keyof typeof CONTRACTS_CONFIG) ?? 84532];
       const gaslessRelayerAddress = contracts.GASLESS_RELAYER as `0x${string}`;
 
+      console.log("🔍 Gasless Relayer Debug:", {
+        chainId: chain.id,
+        gaslessRelayerAddress,
+        contracts: contracts,
+      });
+
       if (!gaslessRelayerAddress || gaslessRelayerAddress === '0x0000000000000000000000000000000000000000') {
+        console.error("❌ Gasless Relayer not configured:", gaslessRelayerAddress);
         toast.error("Gasless relayer not configured for this network");
         setLoading(false);
         return;
