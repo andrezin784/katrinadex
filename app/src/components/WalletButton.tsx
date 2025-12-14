@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from '@/components/ui/button';
+import { Wallet } from 'lucide-react';
 
 export const WalletButton = () => {
   const [mounted, setMounted] = useState(false);
@@ -13,8 +14,9 @@ export const WalletButton = () => {
 
   if (!mounted) {
     return (
-      <Button className="relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 text-white font-bold px-8 py-6 rounded-xl">
+      <Button className="relative overflow-hidden bg-slate-800/50 backdrop-blur-xl border border-slate-700 text-white font-bold px-6 py-5 rounded-xl">
         <span className="relative z-10 flex items-center gap-2">
+          <Wallet className="w-4 h-4" />
           Connect Wallet
         </span>
       </Button>
@@ -32,8 +34,6 @@ export const WalletButton = () => {
         authenticationStatus,
         mounted: rainbowMounted,
       }) => {
-        // Note: If your app doesn't use authentication, you
-        // can remove all 'authenticationStatus' checks
         const ready = rainbowMounted && authenticationStatus !== 'loading';
         const connected =
           ready &&
@@ -58,11 +58,11 @@ export const WalletButton = () => {
                 return (
                   <Button 
                     onClick={openConnectModal} 
-                    className="relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 text-white font-bold px-8 py-6 rounded-xl group transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(0,245,255,0.3)] hover:border-[#00F5FF]/50"
+                    className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-violet-500 text-black font-bold px-6 py-5 rounded-xl group transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)]"
                   >
-                    <span className="absolute inset-0 bg-gradient-to-r from-violet-600/20 to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <span className="relative z-10 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#00F5FF] animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                       Connect Wallet
                     </span>
                   </Button>
@@ -73,8 +73,7 @@ export const WalletButton = () => {
                 return (
                   <Button 
                     onClick={openChainModal}
-                    variant="destructive"
-                    className="font-bold px-6 py-4 rounded-xl"
+                    className="font-bold px-6 py-4 rounded-xl bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30"
                   >
                     Wrong network
                   </Button>
@@ -86,24 +85,23 @@ export const WalletButton = () => {
                   <Button
                     onClick={openChainModal}
                     variant="outline"
-                    className="hidden md:flex items-center gap-2 border-white/10 text-white hover:bg-white/5 rounded-xl font-bold"
+                    className="hidden md:flex items-center gap-2 border-slate-700 text-slate-300 hover:bg-slate-800/50 hover:border-cyan-500/30 rounded-xl font-medium"
                   >
                     {chain.hasIcon && (
                       <div
                         style={{
                           background: chain.iconBackground,
-                          width: 12,
-                          height: 12,
+                          width: 16,
+                          height: 16,
                           borderRadius: 999,
                           overflow: 'hidden',
-                          marginRight: 4,
                         }}
                       >
                         {chain.iconUrl && (
                           <img
                             alt={chain.name ?? 'Chain icon'}
                             src={chain.iconUrl}
-                            style={{ width: 12, height: 12 }}
+                            style={{ width: 16, height: 16 }}
                           />
                         )}
                       </div>
@@ -113,8 +111,9 @@ export const WalletButton = () => {
 
                   <Button 
                     onClick={openAccountModal}
-                    className="bg-[#00F5FF]/10 border border-[#00F5FF]/50 text-[#00F5FF] hover:bg-[#00F5FF]/20 font-bold px-6 rounded-xl"
+                    className="bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-500/50 font-bold px-5 rounded-xl transition-all duration-300"
                   >
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 mr-2 animate-pulse" />
                     {account.displayName}
                     {account.displayBalance
                       ? ` (${account.displayBalance})`
@@ -129,4 +128,3 @@ export const WalletButton = () => {
     </ConnectButton.Custom>
   );
 };
-

@@ -433,23 +433,29 @@ export default function DepositPage() {
       
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <Link href="/" className="p-2 rounded-full hover:bg-white/5 transition-colors">
-          <ArrowLeft className="w-6 h-6 text-white" />
+        <Link href="/" className="p-2 rounded-full hover:bg-white/5 transition-colors group">
+          <ArrowLeft className="w-6 h-6 text-slate-400 group-hover:text-cyan-400 transition-colors" />
         </Link>
         <h1 className="text-xl font-bold text-white">Deposit</h1>
-        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-cyan-400">
           <Settings className="w-5 h-5" />
         </Button>
       </div>
 
-      {/* Stepper */}
+      {/* Arc-Style Stepper */}
       <div className="flex justify-between mb-8 relative">
-        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/10 -z-10" />
+        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-800 -z-10" />
+        <div 
+          className="absolute top-1/2 left-0 h-0.5 bg-gradient-to-r from-cyan-500 to-violet-500 -z-10 transition-all duration-500"
+          style={{ width: `${((step - 1) / 2) * 100}%` }}
+        />
         {[1, 2, 3].map((s) => (
           <div 
             key={s} 
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 ${
-              step >= s ? 'bg-[#00F5FF] text-black shadow-[0_0_15px_rgba(0,245,255,0.5)]' : 'bg-[#1a1a1a] text-gray-500 border border-white/10'
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 ${
+              step >= s 
+                ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.5)]' 
+                : 'bg-slate-800 text-slate-500 border border-slate-700'
             }`}
           >
             {step > s ? <Check className="w-4 h-4" /> : s}
@@ -467,15 +473,15 @@ export default function DepositPage() {
             className="space-y-6"
           >
             {/* Main Card */}
-            <div className="glass p-6 rounded-3xl border border-white/10 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-[#00F5FF] text-black text-[10px] font-bold px-2 py-1 rounded-bl-xl">
-                POWERED BY 1INCH
+            <div className="glass-card p-6 rounded-3xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-gradient-to-r from-cyan-500 to-violet-500 text-black text-[10px] font-bold px-3 py-1.5 rounded-bl-xl">
+                POWERED BY ARC
               </div>
               
               <div className="space-y-4">
                 {/* You Pay Section */}
-                <div className="bg-black/40 p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                  <div className="flex justify-between text-sm text-gray-400 mb-2">
+                <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 hover:border-cyan-500/30 transition-colors">
+                  <div className="flex justify-between text-sm text-slate-400 mb-2">
                     <span>You Pay</span>
                     <span>
                       {(() => {
@@ -508,7 +514,7 @@ export default function DepositPage() {
                         <SelectTrigger className="w-full h-14 bg-transparent border-none text-3xl font-bold text-white p-0 focus:ring-0 shadow-none hover:opacity-80 transition-opacity [&>span]:justify-start">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#0a0a0a] border-white/10 text-white min-w-[200px]">
+                        <SelectContent className="bg-slate-900 border-slate-700 text-white min-w-[200px]">
                           {(poolSizes[selectedToken] || []).map((pool) => (
                             <SelectItem key={pool.index} value={pool.index.toString()} className="text-lg py-3 focus:bg-white/10 focus:text-white cursor-pointer">
                               {pool.label}
@@ -537,7 +543,7 @@ export default function DepositPage() {
                                 <span className="font-bold text-white">{selectedToken === 'ETH' ? ethLabel : selectedToken}</span>
                               </div>
                             </SelectTrigger>
-                            <SelectContent className="bg-[#0a0a0a] border-white/10 text-white min-w-[120px]" align="end">
+                            <SelectContent className="bg-slate-900 border-slate-700 text-white min-w-[120px]" align="end">
                               <SelectItem value="ETH" className="py-3 focus:bg-white/10 focus:text-white cursor-pointer">
                                 <div className="flex items-center gap-2">
                                   {isArc ? <UsdcIcon /> : <EthIcon />}

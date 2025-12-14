@@ -13,10 +13,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "KatrinaDEX - Privacy Reimagined",
-  description: "The most beautiful and compliant privacy mixer. ZK-proof technology + fixed pools + total compliance.",
+  title: "KatrinaDEX - Privacy Reimagined | Arc Testnet",
+  description: "The most advanced ZK privacy mixer. Total anonymity meets full regulatory compliance. Powered by Arc Testnet.",
   icons: {
     icon: "/favicon.svg",
+  },
+  openGraph: {
+    title: "KatrinaDEX - Privacy Reimagined",
+    description: "The most advanced ZK privacy mixer built for the future.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "KatrinaDEX - Privacy Reimagined",
+    description: "The most advanced ZK privacy mixer built for the future.",
   },
 };
 
@@ -27,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans antialiased bg-[#0a0a0a] min-h-screen relative overflow-x-hidden selection:bg-[#00F5FF] selection:text-black`}>
+      <body className={`${inter.variable} font-sans antialiased bg-[#030712] min-h-screen relative overflow-x-hidden selection:bg-cyan-500/30 selection:text-white`}>
         <Providers>
           <ParticlesBackground />
           
@@ -37,7 +46,18 @@ export default function RootLayout({
           </div>
 
           <BottomNav />
-          <Toaster position="top-center" theme="dark" richColors />
+          <Toaster 
+            position="top-center" 
+            theme="dark" 
+            richColors 
+            toastOptions={{
+              style: {
+                background: 'rgba(15, 23, 42, 0.9)',
+                border: '1px solid rgba(6, 182, 212, 0.2)',
+                backdropFilter: 'blur(12px)',
+              },
+            }}
+          />
         </Providers>
       </body>
     </html>
