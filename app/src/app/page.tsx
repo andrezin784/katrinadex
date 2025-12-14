@@ -347,14 +347,14 @@ export default function Home() {
                 The first ZK privacy platform fully compliant with global regulations. Protect your assets without compromising legality.
               </p>
               <div className="flex gap-4 mt-6">
-                <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors">
-                  <Twitter className="w-5 h-5 text-slate-400 hover:text-cyan-400" />
+                <a href="https://twitter.com/katrinadex" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors group">
+                  <Twitter className="w-5 h-5 text-slate-400 group-hover:text-cyan-400" />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors">
-                  <Github className="w-5 h-5 text-slate-400 hover:text-cyan-400" />
+                <a href="https://github.com/andrezin784/katrinadex" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors group">
+                  <Github className="w-5 h-5 text-slate-400 group-hover:text-cyan-400" />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors">
-                  <FileText className="w-5 h-5 text-slate-400 hover:text-cyan-400" />
+                <a href="https://github.com/andrezin784/katrinadex#readme" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors group">
+                  <FileText className="w-5 h-5 text-slate-400 group-hover:text-cyan-400" />
                 </a>
               </div>
             </div>
