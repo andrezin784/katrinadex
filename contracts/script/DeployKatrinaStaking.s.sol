@@ -40,18 +40,7 @@ contract DeployKatrinaStaking is Script {
         console.log("Token:", address(token));
         console.log("Staking:", address(staking));
         console.log("===========================");
-        console.log("\n=== TEST COMMANDS ===");
-        console.log("1. Add pool:");
-        console.log("   cast send", address(staking), "'addPool(uint256)' 1000000000000000 --rpc-url http://localhost:8545 --private-key <KEY>");
-        console.log("\n2. Approve tokens:");
-        console.log("   cast send", address(token), "'approve(address,uint256)'", address(staking), "1000000000000000000000 --rpc-url http://localhost:8545 --private-key <KEY>");
-        console.log("\n3. Stake tokens:");
-        console.log("   cast send", address(staking), "'stake(uint256,uint256)' 0 1000000000000000000000 --rpc-url http://localhost:8545 --private-key <KEY>");
-        console.log("\n4. Check reward:");
-        console.log("   cast call", address(staking), "'calculateReward(address,uint256)' <USER_ADDRESS> 0 --rpc-url http://localhost:8545");
-        console.log("\n5. Claim rewards:");
-        console.log("   cast send", address(staking), "'claim(uint256)' 0 --rpc-url http://localhost:8545 --private-key <KEY>");
-        console.log("=====================");
+        console.log("Test: addPool, approve, stake, claim - See README for commands");
     }
 }
 

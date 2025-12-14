@@ -1,0 +1,21 @@
+{
+  "detectors_to_run": "all",
+  "exclude_informational": true,
+  "exclude_low": false,
+  "exclude_medium": false,
+  "exclude_high": false,
+  "fail_on": "high",
+  "filter_paths": [
+    "lib/",
+    "node_modules/",
+    "test/",
+    "script/"
+  ],
+  "solc_remaps": [
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "forge-std/=lib/forge-std/src/"
+  ],
+  "foundry_compile_all": true,
+  "show_ignored_findings": false
+}
+

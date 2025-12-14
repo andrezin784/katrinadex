@@ -180,3 +180,115 @@ export const GASLESS_RELAYER_ABI = [
     "type": "function"
   }
 ] as const;
+
+// PrivateSwapVerifier ABI
+export const PRIVATE_SWAP_VERIFIER_ABI = [
+  {
+    "inputs": [
+      { "internalType": "uint256[2]", "name": "proofA", "type": "uint256[2]" },
+      { "internalType": "uint256[2][2]", "name": "proofB", "type": "uint256[2][2]" },
+      { "internalType": "uint256[2]", "name": "proofC", "type": "uint256[2]" },
+      { "internalType": "uint256[4]", "name": "publicSignals", "type": "uint256[4]" }
+    ],
+    "name": "verifyPrivateSwap",
+    "outputs": [{ "internalType": "bool", "name": "valid", "type": "bool" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "commitment", "type": "bytes32" }],
+    "name": "isCommitmentUsed",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const;
+
+// RangeProofVerifier ABI
+export const RANGE_PROOF_VERIFIER_ABI = [
+  {
+    "inputs": [
+      { "internalType": "uint256[2]", "name": "proofA", "type": "uint256[2]" },
+      { "internalType": "uint256[2][2]", "name": "proofB", "type": "uint256[2][2]" },
+      { "internalType": "uint256[2]", "name": "proofC", "type": "uint256[2]" },
+      { "internalType": "uint256[3]", "name": "publicSignals", "type": "uint256[3]" }
+    ],
+    "name": "verifyRangeProof",
+    "outputs": [{ "internalType": "bool", "name": "verified", "type": "bool" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "isUserVerified",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "verifiedModeThreshold",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const;
+
+// DIDRegistry ABI
+export const DID_REGISTRY_ABI = [
+  {
+    "inputs": [{ "internalType": "bytes", "name": "signature", "type": "bytes" }],
+    "name": "createDID",
+    "outputs": [{ "internalType": "string", "name": "did", "type": "string" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "revokeDID",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes", "name": "signature", "type": "bytes" }],
+    "name": "renewDID",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "hasValidDID",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "getDID",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
+    "name": "getCredential",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "string", "name": "did", "type": "string" },
+          { "internalType": "uint256", "name": "createdAt", "type": "uint256" },
+          { "internalType": "uint256", "name": "expiresAt", "type": "uint256" },
+          { "internalType": "bool", "name": "isActive", "type": "bool" },
+          { "internalType": "bytes32", "name": "credentialHash", "type": "bytes32" }
+        ],
+        "internalType": "struct DIDRegistry.DIDCredential",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] as const;

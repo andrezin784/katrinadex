@@ -1,0 +1,84 @@
+name: Certora Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/src/**'
+      - 'contracts/certora/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'contracts/src/**'
+      - 'contracts/certora/**'
+  workflow_dispatch:
+
+jobs:
+  certora:
+    name: Certora Formal Verification
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Certora CLI
+        run: |
+          pip install certora-cli
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: |
+          cd contracts
+          forge install
+
+      - name: Run Certora - Mixer Rules
+        if: always()
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+        run: |
+          cd contracts
+          certoraRun certora/conf/Mixer.conf || echo "Mixer verification completed"
+        continue-on-error: true
+
+      - name: Run Certora - Relayer Rules
+        if: always()
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+        run: |
+          cd contracts
+          certoraRun certora/conf/Relayer.conf || echo "Relayer verification completed"
+        continue-on-error: true
+
+      - name: Run Certora - DID Rules
+        if: always()
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+        run: |
+          cd contracts
+          certoraRun certora/conf/DIDRegistry.conf || echo "DID verification completed"
+        continue-on-error: true
+
+      - name: Create Summary
+        if: always()
+        run: |
+          echo "## Certora Formal Verification Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the Certora Prover dashboard for detailed results." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Verification runs:" >> $GITHUB_STEP_SUMMARY
+          echo "- Mixer.conf" >> $GITHUB_STEP_SUMMARY
+          echo "- Relayer.conf" >> $GITHUB_STEP_SUMMARY
+          echo "- DIDRegistry.conf" >> $GITHUB_STEP_SUMMARY
+

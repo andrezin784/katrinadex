@@ -19,7 +19,7 @@ contract DeployGaslessRelayer is Script {
         if (chainId == 84532) {
             // Base Sepolia
             mixer = 0x46f123107B2E4f9042de8c6Fb8762f8824ef90f4;
-            treasury = 0x4d149a54658d310c9487671d868a4ce0b6fded96; // Protocol owner
+            treasury = 0x4D149a54658d310C9487671d868A4ce0B6fdEd96; // Protocol owner
             // Pool amounts: 0.01 ETH, 0.1 ETH, 0.5 ETH, 1 ETH, 5 ETH
             // E: 10 USDC, 100 USDC, 500 USDC, 1000 USDC, 5000 USDC, 10000 USDC
             poolAmounts = new uint256[](11);
@@ -37,7 +37,7 @@ contract DeployGaslessRelayer is Script {
         } else if (chainId == 5042002) {
             // Arc Testnet
             mixer = 0x3441cF331Cb75c6BBCa7a34718224C7983eF4636;
-            treasury = 0x4d149a54658d310c9487671d868a4ce0b6fded96;
+            treasury = 0x4D149a54658d310C9487671d868A4ce0B6fdEd96;
             // Pool amounts: 10 USDC (native, 18 decimals), 100, 1000, 10000
             // E: 10 EURC, 100, 500, 1000, 5000, 10000 (6 decimals)
             poolAmounts = new uint256[](10);
