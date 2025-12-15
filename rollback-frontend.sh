@@ -94,3 +94,5 @@ echo "   git branch -D ${ROLLBACK_BRANCH}"
 echo ""
 echo -e "${CYAN}🔧 O Vercel irá fazer deploy automaticamente após o push.${NC}"
 
+
+

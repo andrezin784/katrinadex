@@ -17,6 +17,7 @@ import { generateMixerProof, formatProofForContract } from '@/lib/zk';
 import { buildPoseidon } from 'circomlibjs';
 import { SecurityWarning } from '@/components/SecurityWarning';
 import { createWithdrawGaslessTypedData, calculateFinalAmount } from '@/lib/eip712';
+import { checkAddressTRM } from '@/lib/trmCheck';
 
 export default function WithdrawPage() {
   const router = useRouter();
@@ -93,6 +94,45 @@ export default function WithdrawPage() {
     if (!isAddress(recipient)) {
       toast.error("Invalid recipient address");
       return;
+    }
+
+    // TRM Compliance Check (pré-verificação)
+    try {
+      setLoading(true);
+      setStatusMessage("Checking compliance...");
+      
+      const trmResult = await checkAddressTRM({
+        address: recipient,
+        chainId: chain?.id,
+        amount: parsedNote.amount,
+      });
+
+      if (!trmResult.allowed) {
+        toast.error(
+          `Address blocked: ${trmResult.reason || 'High risk detected'}`,
+          { duration: 5000 }
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Log para auditoria (em produção, enviar para serviço de logging)
+      if (trmResult.riskLevel !== 'low') {
+        console.warn('[TRM] Medium/High risk address:', {
+          address: recipient,
+          riskLevel: trmResult.riskLevel,
+        });
+      }
+    } catch (error) {
+      console.error('[TRM Check Error]', error);
+      // Em caso de erro, permitir por padrão (fail-open)
+      // Pode ser configurado para fail-closed via env var
+      const failClosed = process.env.NEXT_PUBLIC_TRM_FAIL_CLOSED === 'true';
+      if (failClosed) {
+        toast.error("Compliance check failed. Transaction blocked.");
+        setLoading(false);
+        return;
+      }
     }
 
     // Gasless withdraw flow
@@ -326,6 +366,24 @@ export default function WithdrawPage() {
 
     try {
       setLoading(true);
+      setStatusMessage("Checking compliance...");
+
+      // TRM Compliance Check (pré-verificação para gasless)
+      const trmResult = await checkAddressTRM({
+        address: recipient,
+        chainId: chain.id,
+        amount: parsedNote.amount,
+      });
+
+      if (!trmResult.allowed) {
+        toast.error(
+          `Address blocked: ${trmResult.reason || 'High risk detected'}`,
+          { duration: 5000 }
+        );
+        setLoading(false);
+        return;
+      }
+
       setStatusMessage("Preparing gasless withdrawal...");
 
       const contracts = CONTRACTS_CONFIG[(chain.id as keyof typeof CONTRACTS_CONFIG) ?? 84532];
@@ -369,7 +427,13 @@ export default function WithdrawPage() {
         const tokenPools = isArc ? poolSizes.USDC : poolSizes.USDC;
         poolIndex = tokenPools.findIndex(p => p.value === parsedNote.amount);
       } else {
-        tokenAddress = contracts.EURC as `0x${string}`;
+        const eurcAddr = 'EURC' in contracts ? (contracts as any).EURC : null;
+        if (!eurcAddr) {
+          toast.error("EURC not available on this chain");
+          setLoading(false);
+          return;
+        }
+        tokenAddress = eurcAddr as `0x${string}`;
         poolIndex = poolSizes.EURC.findIndex(p => p.value === parsedNote.amount);
       }
 
