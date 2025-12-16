@@ -57,3 +57,6 @@ circuits/node_modules/
 
 
 
+# Cursor IDE
+.cursor/
+.cursorignore
