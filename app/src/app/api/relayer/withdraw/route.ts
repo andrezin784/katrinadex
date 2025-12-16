@@ -60,6 +60,25 @@ interface WithdrawRequest {
   isETH: boolean;
 }
 
+// Helper: Convert proof components to uint256[8] format
+// Groth16 proof: [a[0], a[1], b[0][0], b[0][1], b[1][0], b[1][1], c[0], c[1]]
+function convertProofToUint256Array(
+  proofA: [string, string],
+  proofB: [[string, string], [string, string]],
+  proofC: [string, string]
+): [bigint, bigint, bigint, bigint, bigint, bigint, bigint, bigint] {
+  return [
+    BigInt(proofA[0]),
+    BigInt(proofA[1]),
+    BigInt(proofB[0][0]),
+    BigInt(proofB[0][1]),
+    BigInt(proofB[1][0]),
+    BigInt(proofB[1][1]),
+    BigInt(proofC[0]),
+    BigInt(proofC[1]),
+  ];
+}
+
 /**
  * POST /api/relayer/withdraw
  * 
@@ -98,14 +117,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Convert to bigint
+    // Validate and convert all proof fields to bigint
+    if (!proofA || !proofB || !proofC || !proofInput) {
+      return NextResponse.json(
+        { error: 'Missing proof data' },
+        { status: 400 }
+      );
+    }
+
+    // Convert to bigint (ensure all fields are properly converted)
     const amountBigInt = BigInt(amount);
-    const proofAFormatted: [bigint, bigint] = [BigInt(proofA[0]), BigInt(proofA[1])];
+    const proofAFormatted: [bigint, bigint] = [
+      BigInt(proofA[0]),
+      BigInt(proofA[1]),
+    ];
     const proofBFormatted: [[bigint, bigint], [bigint, bigint]] = [
       [BigInt(proofB[0][0]), BigInt(proofB[0][1])],
       [BigInt(proofB[1][0]), BigInt(proofB[1][1])],
     ];
-    const proofCFormatted: [bigint, bigint] = [BigInt(proofC[0]), BigInt(proofC[1])];
+    const proofCFormatted: [bigint, bigint] = [
+      BigInt(proofC[0]),
+      BigInt(proofC[1]),
+    ];
     const proofInputFormatted: [bigint, bigint, bigint] = [
       BigInt(proofInput[0]),
       BigInt(proofInput[1]),
@@ -144,6 +177,7 @@ export async function POST(req: NextRequest) {
       to: relayerAddress,
       chainId,
       functionName,
+      gasLimit: '500000', // Estimated gas limit for relayWithdraw
     });
   } catch (error: any) {
     console.error('[Relayer Withdraw Error]', error);

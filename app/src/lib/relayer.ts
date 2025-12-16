@@ -40,9 +40,11 @@ export interface GaslessWithdrawResult {
 
 /**
  * Calculate net amount after 0.4% fee
+ * Uses: netAmount = amount - (amount * 0.004n)
  */
 export function calculateNetAmount(amount: bigint): { netAmount: bigint; fee: bigint } {
-  const fee = (amount * BigInt(GASLESS_FEE_BASIS_POINTS)) / BigInt(BASIS_POINTS);
+  // 0.4% = 0.004 = 4/1000
+  const fee = (amount * BigInt(4)) / BigInt(1000);
   const netAmount = amount - fee;
   return { netAmount, fee };
 }
@@ -134,28 +136,65 @@ export async function submitGaslessWithdraw(
     throw new Error('Gasless withdraw is disabled. Set NEXT_PUBLIC_ENABLE_GASLESS=true');
   }
 
-  // Calculate fee and net amount
-  const { netAmount, fee } = calculateNetAmount(params.amount);
+  // Validate relayer address
+  const relayerAddress = process.env.NEXT_PUBLIC_RELAYER_ADDRESS || params.relayerAddress;
+  if (!relayerAddress || relayerAddress === '0x0000000000000000000000000000000000000000') {
+    throw new Error('RELAYER_ADDRESS not configured. Set NEXT_PUBLIC_RELAYER_ADDRESS');
+  }
 
-  // Encode function call
-  const data = await encodeRelayCall(params);
+  // Validate all proof fields are valid strings/numbers
+  if (!params.proofA || !params.proofB || !params.proofC || !params.proofInput) {
+    throw new Error('Invalid proof data: missing proof components');
+  }
+
+  // Calculate fee and net amount (0.4% = 0.004n)
+  const fee = (params.amount * BigInt(4)) / BigInt(1000); // amount * 0.004n
+  const netAmount = params.amount - fee;
+
+  // Convert all proof fields to bigint (ensure proper conversion)
+  const proofAFormatted: [bigint, bigint] = [
+    BigInt(params.proofA[0]),
+    BigInt(params.proofA[1]),
+  ];
+  const proofBFormatted: [[bigint, bigint], [bigint, bigint]] = [
+    [BigInt(params.proofB[0][0]), BigInt(params.proofB[0][1])],
+    [BigInt(params.proofB[1][0]), BigInt(params.proofB[1][1])],
+  ];
+  const proofCFormatted: [bigint, bigint] = [
+    BigInt(params.proofC[0]),
+    BigInt(params.proofC[1]),
+  ];
+  const proofInputFormatted: [bigint, bigint, bigint] = [
+    BigInt(params.proofInput[0]),
+    BigInt(params.proofInput[1]),
+    BigInt(params.proofInput[2]),
+  ];
+
+  // Encode function call with validated relayer address
+  const paramsWithValidatedRelayer = {
+    ...params,
+    relayerAddress: relayerAddress as `0x${string}`,
+  };
+  const data = await encodeRelayCall(paramsWithValidatedRelayer);
 
   // Prepare Gelato sponsored call request
   const request: SponsoredCallRequest = {
     chainId: BigInt(params.chainId),
-    target: params.relayerAddress,
+    target: relayerAddress as `0x${string}`,
     data,
   };
 
-  // Log attempt
+  // Log attempt with masked sensitive data
+  const maskedRecipient = `${params.recipient.slice(0, 6)}...${params.recipient.slice(-4)}`;
   console.log({
     type: 'gasless-attempt',
     chainId: params.chainId,
-    relayer: params.relayerAddress,
-    recipient: params.recipient,
+    relayer: `${relayerAddress.slice(0, 6)}...${relayerAddress.slice(-4)}`,
+    recipient: maskedRecipient,
     amount: params.amount.toString(),
     netAmount: netAmount.toString(),
     fee: fee.toString(),
+    isETH: params.isETH,
   });
 
   try {
@@ -168,6 +207,7 @@ export async function submitGaslessWithdraw(
       taskId,
       chainId: params.chainId,
       status: 'pending',
+      relayer: `${relayerAddress.slice(0, 6)}...${relayerAddress.slice(-4)}`,
     });
 
     return {
@@ -177,15 +217,23 @@ export async function submitGaslessWithdraw(
       fee,
     };
   } catch (error: any) {
-    // Log error
-    console.error({
+    // Log error with masked params and stack trace summary
+    const errorMessage = error?.message || 'Unknown error';
+    const stackSummary = error?.stack?.split('\n').slice(0, 3).join(' | ') || 'No stack trace';
+    
+    // Use console.error with string format for better compatibility
+    console.error('[Gasless Error]', {
       type: 'gasless-error',
-      error: error.message,
+      error: errorMessage,
       chainId: params.chainId,
+      relayer: `${relayerAddress.slice(0, 6)}...${relayerAddress.slice(-4)}`,
+      recipient: maskedRecipient,
       status: 'failed',
+      stackSummary: stackSummary.substring(0, 200), // Limit stack trace length
     });
 
-    throw new Error(`Gelato Relay failed: ${error.message}`);
+    // Re-throw with descriptive error for toast
+    throw new Error(`Gelato Relay failed: ${errorMessage}`);
   }
 }
 
