@@ -45,15 +45,15 @@ export function PrivacyOnboarding() {
         <AlertDialogHeader>
           <AlertDialogTitle className="text-3xl font-black text-white mb-2 flex items-center gap-3">
             <Shield className="w-8 h-8 text-cyan-400" />
-            <span>Entenda sua <span className="text-gradient-static">Privacidade</span></span>
+            <span>Understand Your <span className="text-gradient-static">Privacy</span></span>
           </AlertDialogTitle>
           <AlertDialogDescription className="text-base text-slate-400">
-            Antes de usar o KatrinaDEX, é importante entender o que é privado e o que é público.
+            Before using KatrinaDEX, it's important to understand what is private and what is public.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
-          {/* O que é privado */}
+          {/* What is private */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,31 +63,31 @@ export function PrivacyOnboarding() {
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="w-5 h-5 text-green-400" />
-                  <CardTitle className="text-white text-lg">O que é privado</CardTitle>
+                  <CardTitle className="text-white text-lg">What is private</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-slate-300">Seu endereço de origem</p>
+                  <p className="text-sm text-slate-300">Your source address</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-slate-300">Valor dentro do pool</p>
+                  <p className="text-sm text-slate-300">Amount within the pool</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-slate-300">Seu endereço de destino</p>
+                  <p className="text-sm text-slate-300">Your destination address</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-slate-300">Conexão entre depósito e saque</p>
+                  <p className="text-sm text-slate-300">Connection between deposit and withdrawal</p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* O que é público */}
+          {/* What is public */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -97,33 +97,33 @@ export function PrivacyOnboarding() {
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="w-5 h-5 text-yellow-400" />
-                  <CardTitle className="text-white text-lg">O que é público</CardTitle>
+                  <CardTitle className="text-white text-lg">What is public</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2 flex-shrink-0" />
                   <p className="text-sm text-slate-300">
-                    <code className="text-xs bg-black/40 px-1.5 py-0.5 rounded">nullifierHash</code> no blockchain
+                    <code className="text-xs bg-black/40 px-1.5 py-0.5 rounded">nullifierHash</code> on the blockchain
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-slate-300">Pool escolhido (0.1 ETH, 1 ETH, etc.)</p>
+                  <p className="text-sm text-slate-300">Selected pool (0.1 ETH, 1 ETH, etc.)</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-slate-300">Timestamp da transação</p>
+                  <p className="text-sm text-slate-300">Transaction timestamp</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2 flex-shrink-0" />
-                  <p className="text-sm text-slate-300">Valor total do pool (TVL)</p>
+                  <p className="text-sm text-slate-300">Total pool value (TVL)</p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* Como funciona */}
+          {/* How it works */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -133,32 +133,32 @@ export function PrivacyOnboarding() {
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
                   <Info className="w-5 h-5 text-cyan-400" />
-                  <CardTitle className="text-white text-lg">Como funciona</CardTitle>
+                  <CardTitle className="text-white text-lg">How it works</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
                   <p className="text-sm text-slate-300">
-                    Provas ZK geradas no seu browser — nunca saem do dispositivo
+                    ZK proofs generated in your browser — never leave your device
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
                   <p className="text-sm text-slate-300">
-                    Verificação TRM antes de cada saque (compliance)
+                    TRM verification before each withdrawal (compliance)
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
                   <p className="text-sm text-slate-300">
-                    Sem KYC, sem rastreamento, sem coleta de dados
+                    No KYC, no tracking, no data collection
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
                   <p className="text-sm text-slate-300">
-                    Anonimato garantido por matemática, não por confiança
+                    Anonymity guaranteed by mathematics, not trust
                   </p>
                 </div>
               </CardContent>
@@ -171,7 +171,7 @@ export function PrivacyOnboarding() {
             onClick={handleUnderstood}
             className="w-full h-12 text-lg font-bold bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400 text-white"
           >
-            Entendi, continuar
+            Got it, continue
           </AlertDialogAction>
         </div>
       </AlertDialogContent>

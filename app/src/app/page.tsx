@@ -171,13 +171,13 @@ export default function Home() {
               className="mb-8 space-y-4"
             >
               <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl">
-                Seu salário veio em ETH. Você comprou USDC na Binance.
+                Your salary came in ETH. You bought USDC on a centralized exchange.
               </p>
               <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl">
-                Mas agora… cada transação sua é <span className="text-red-400 font-semibold">pública</span> — e <span className="text-red-400 font-semibold">rastreável</span>.
+                But now… every transaction you make is <span className="text-red-400 font-semibold">public</span> — and <span className="text-red-400 font-semibold">traceable</span>.
               </p>
               <p className="text-lg md:text-xl text-cyan-400 leading-relaxed max-w-2xl font-semibold">
-                O KatrinaDEX quebra essa cadeia — sem esconder o que é ilegal.
+                KatrinaDEX breaks that chain — without hiding what's illegal.
               </p>
             </motion.div>
 
@@ -191,13 +191,13 @@ export default function Home() {
               <Link href="/deposit">
                 <Button className="w-full sm:w-auto h-16 px-10 text-lg font-bold glow-btn text-black rounded-2xl shimmer-btn">
                   <Wallet className="w-5 h-5 mr-2" />
-                  Depositar com privacidade
+                  Deposit with Privacy
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
               <Link href="/compliance">
                 <Button variant="outline" className="w-full sm:w-auto h-16 px-10 text-lg font-semibold border-slate-700 text-white hover:bg-white/5 rounded-2xl backdrop-blur-md group">
-                  Ver como funciona (30s)
+                  See How It Works (30s)
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

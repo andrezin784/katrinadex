@@ -304,7 +304,7 @@ export async function submitGaslessWithdraw(
     console.error('[Gasless Error]', JSON.stringify(errorLog, null, 2));
 
     // Re-throw with user-friendly error message
-    const userFriendlyMessage = `O relayer não respondeu. Seus fundos estão seguros. Você pode: (1) Tentar novamente, (2) Fazer saque normal (com gas), ou (3) Esperar e tentar mais tarde.`;
+    const userFriendlyMessage = `The relayer did not respond. Your funds are safe. You can: (1) Try again, (2) Make a normal withdrawal (with gas), or (3) Wait and try later.`;
     
     throw new Error(userFriendlyMessage);
   }

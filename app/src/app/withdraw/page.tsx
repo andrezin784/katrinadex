@@ -247,11 +247,11 @@ export default function WithdrawPage() {
           error: errorMessage,
           timestamp: new Date().toISOString(),
         });
-        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
+        throw new Error("Your ZK proof was not generated. This can happen on devices with low memory. Try: (1) Reload, (2) Use desktop, or (3) Choose a smaller pool.");
       }
       
       if (!proofData) {
-        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
+        throw new Error("Your ZK proof was not generated. This can happen on devices with low memory. Try: (1) Reload, (2) Use desktop, or (3) Choose a smaller pool.");
       }
 
       const { proof, publicSignals } = proofData;
@@ -459,11 +459,11 @@ export default function WithdrawPage() {
           error: errorMessage,
           timestamp: new Date().toISOString(),
         });
-        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
+        throw new Error("Your ZK proof was not generated. This can happen on devices with low memory. Try: (1) Reload, (2) Use desktop, or (3) Choose a smaller pool.");
       }
       
       if (!proofData) {
-        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
+        throw new Error("Your ZK proof was not generated. This can happen on devices with low memory. Try: (1) Reload, (2) Use desktop, or (3) Choose a smaller pool.");
       }
 
       const { proof, publicSignals } = proofData;
@@ -562,7 +562,7 @@ export default function WithdrawPage() {
           toast.error(errorMessage, {
             duration: 10000,
             action: {
-              label: "Tentar novamente",
+              label: "Try again",
               onClick: () => handleGaslessWithdraw(),
             },
           });
