@@ -14,7 +14,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "KatrinaDEX - Privacy Reimagined | Arc Testnet",
-  description: "The most advanced ZK privacy mixer. Total anonymity meets full regulatory compliance. Powered by Arc Testnet.",
+  description: "The most advanced ZK privacy mixer. Total anonymity meets full regulatory compliance. Building in arc.",
   icons: {
     icon: "/favicon.svg",
   },

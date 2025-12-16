@@ -475,7 +475,7 @@ export default function DepositPage() {
             {/* Main Card */}
             <div className="glass-card p-6 rounded-3xl relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-gradient-to-r from-cyan-500 to-violet-500 text-black text-[10px] font-bold px-3 py-1.5 rounded-bl-xl">
-                POWERED BY ARC
+                building in arc
               </div>
               
               <div className="space-y-4">

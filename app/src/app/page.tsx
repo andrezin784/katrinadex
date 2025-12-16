@@ -160,7 +160,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 mb-8 backdrop-blur-md"
             >
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">Powered by Arc Testnet</span>
+              <span className="text-sm font-medium">building in arc</span>
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             </motion.div>
 
@@ -347,7 +347,7 @@ export default function Home() {
                 The first ZK privacy platform fully compliant with global regulations. Protect your assets without compromising legality.
               </p>
               <div className="flex gap-4 mt-6">
-                <a href="https://twitter.com/katrinadex" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors group">
+                <a href="https://x.com/moon_fun1" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors group">
                   <Twitter className="w-5 h-5 text-slate-400 group-hover:text-cyan-400" />
                 </a>
                 <a href="https://github.com/andrezin784/katrinadex" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-cyan-500/20 transition-colors group">
