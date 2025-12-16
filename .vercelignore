@@ -1,0 +1,11 @@
+# Vercel ignore file
+# This file tells Vercel what to ignore during deployment
+
+# Ignore everything except app/
+/*
+!/app/
+
+# But include vercel.json and other config files
+!vercel.json
+!.gitignore
+!README.md
