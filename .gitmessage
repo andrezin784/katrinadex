@@ -1,0 +1,17 @@
+# Template de mensagens de commit (mais simples e naturais)
+
+# Tipos de commit:
+# fix: correção de bug
+# feat: nova funcionalidade
+# docs: documentação
+# style: formatação
+# refactor: refatoração
+# test: testes
+# chore: tarefas de manutenção
+
+# Exemplos simples:
+# fix: bug no withdraw
+# feat: adiciona gasless withdraw
+# docs: atualiza README
+# refactor: simplifica código
+

@@ -33,6 +33,18 @@ yarn-error.log*
 *.swo
 .DS_Store
 
+# Cursor IDE (privacy)
+.cursor/
+.cursorignore
+*.cursor
+.cursorrules
+
+# AI/Assistant tools (privacy)
+.copilot/
+.github/copilot/
+*.ai
+*.assistant
+
 # Foundry
 contracts/cache/
 contracts/out/
@@ -49,14 +61,3 @@ circuits/node_modules/
 *.log
 .vercel
 .turbo
-
-
-
-
-
-
-
-
-# Cursor IDE
-.cursor/
-.cursorignore

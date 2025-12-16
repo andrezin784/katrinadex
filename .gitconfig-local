@@ -1,0 +1,9 @@
+# Configuração local do Git para commits mais simples
+# Para usar: git config --local include.path .gitconfig-local
+
+[commit]
+    template = .gitmessage
+
+[format]
+    subjectLimit = 72
+
