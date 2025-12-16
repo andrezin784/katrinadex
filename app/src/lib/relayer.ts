@@ -50,22 +50,63 @@ export function calculateNetAmount(amount: bigint): { netAmount: bigint; fee: bi
 }
 
 /**
+ * Safely convert string to bigint with validation
+ */
+function safeBigInt(value: string | number | bigint, fieldName: string): bigint {
+  try {
+    if (typeof value === 'bigint') return value;
+    if (typeof value === 'number') return BigInt(value);
+    if (typeof value === 'string') {
+      if (!value || value.trim() === '') {
+        throw new Error(`${fieldName} is empty`);
+      }
+      return BigInt(value);
+    }
+    throw new Error(`${fieldName} has invalid type: ${typeof value}`);
+  } catch (error: any) {
+    throw new Error(`Failed to convert ${fieldName} to bigint: ${error.message}`);
+  }
+}
+
+/**
+ * Detect if response is HTML (404, error page, etc.)
+ */
+function isHTMLResponse(text: string): boolean {
+  if (!text || typeof text !== 'string') return false;
+  const trimmed = text.trim().toLowerCase();
+  return (
+    trimmed.startsWith('<!doctype') ||
+    trimmed.startsWith('<html') ||
+    trimmed.includes('<body') ||
+    trimmed.includes('404') ||
+    trimmed.includes('not found') ||
+    trimmed.includes('error')
+  );
+}
+
+/**
  * Encode relayWithdrawalETH or relayWithdrawalUSDC call
  */
 async function encodeRelayCall(params: GaslessWithdrawParams): Promise<`0x${string}`> {
   const { relayerAddress, proofA, proofB, proofC, proofInput, recipient, amount, poolIndex, isETH } = params;
 
-  // Convert proof arrays to proper format
-  const proofAFormatted: [bigint, bigint] = [BigInt(proofA[0]), BigInt(proofA[1])];
-  const proofBFormatted: [[bigint, bigint], [bigint, bigint]] = [
-    [BigInt(proofB[0][0]), BigInt(proofB[0][1])],
-    [BigInt(proofB[1][0]), BigInt(proofB[1][1])],
+  // Validate and convert proof arrays to proper format with error handling
+  const proofAFormatted: [bigint, bigint] = [
+    safeBigInt(proofA[0], 'proofA[0]'),
+    safeBigInt(proofA[1], 'proofA[1]'),
   ];
-  const proofCFormatted: [bigint, bigint] = [BigInt(proofC[0]), BigInt(proofC[1])];
+  const proofBFormatted: [[bigint, bigint], [bigint, bigint]] = [
+    [safeBigInt(proofB[0][0], 'proofB[0][0]'), safeBigInt(proofB[0][1], 'proofB[0][1]')],
+    [safeBigInt(proofB[1][0], 'proofB[1][0]'), safeBigInt(proofB[1][1], 'proofB[1][1]')],
+  ];
+  const proofCFormatted: [bigint, bigint] = [
+    safeBigInt(proofC[0], 'proofC[0]'),
+    safeBigInt(proofC[1], 'proofC[1]'),
+  ];
   const proofInputFormatted: [bigint, bigint, bigint] = [
-    BigInt(proofInput[0]),
-    BigInt(proofInput[1]),
-    BigInt(proofInput[2]),
+    safeBigInt(proofInput[0], 'proofInput[0]'),
+    safeBigInt(proofInput[1], 'proofInput[1]'),
+    safeBigInt(proofInput[2], 'proofInput[2]'),
   ];
 
   // Relayer ABI for relayWithdrawalETH and relayWithdrawalUSDC
@@ -130,85 +171,96 @@ async function encodeRelayCall(params: GaslessWithdrawParams): Promise<`0x${stri
 export async function submitGaslessWithdraw(
   params: GaslessWithdrawParams
 ): Promise<GaslessWithdrawResult> {
-  // Check feature flag
+  // Check feature flag (rollback mechanism)
   const enabled = process.env.NEXT_PUBLIC_ENABLE_GASLESS === 'true';
   if (!enabled) {
     throw new Error('Gasless withdraw is disabled. Set NEXT_PUBLIC_ENABLE_GASLESS=true');
   }
 
   // Validate relayer address
-  const relayerAddress = process.env.NEXT_PUBLIC_RELAYER_ADDRESS || params.relayerAddress;
-  if (!relayerAddress || relayerAddress === '0x0000000000000000000000000000000000000000') {
-    throw new Error('RELAYER_ADDRESS not configured. Set NEXT_PUBLIC_RELAYER_ADDRESS');
+  const relayerAddress = (process.env.NEXT_PUBLIC_RELAYER_ADDRESS || params.relayerAddress) as `0x${string}`;
+  if (!relayerAddress || 
+      relayerAddress === '0x0000000000000000000000000000000000000000' ||
+      !relayerAddress.startsWith('0x') ||
+      relayerAddress.length !== 42) {
+    throw new Error(`Invalid RELAYER_ADDRESS: ${relayerAddress || 'not set'}. Configure NEXT_PUBLIC_RELAYER_ADDRESS`);
   }
 
   // Validate all proof fields are valid strings/numbers
-  if (!params.proofA || !params.proofB || !params.proofC || !params.proofInput) {
-    throw new Error('Invalid proof data: missing proof components');
+  if (!params.proofA || !Array.isArray(params.proofA) || params.proofA.length !== 2) {
+    throw new Error('Invalid proofA: must be array of 2 strings');
+  }
+  if (!params.proofB || !Array.isArray(params.proofB) || params.proofB.length !== 2) {
+    throw new Error('Invalid proofB: must be array of 2x2 strings');
+  }
+  if (!params.proofC || !Array.isArray(params.proofC) || params.proofC.length !== 2) {
+    throw new Error('Invalid proofC: must be array of 2 strings');
+  }
+  if (!params.proofInput || !Array.isArray(params.proofInput) || params.proofInput.length !== 3) {
+    throw new Error('Invalid proofInput: must be array of 3 strings');
+  }
+
+  // Validate recipient
+  if (!params.recipient || !params.recipient.startsWith('0x') || params.recipient.length !== 42) {
+    throw new Error(`Invalid recipient address: ${params.recipient}`);
+  }
+
+  // Validate amount
+  if (!params.amount || params.amount <= 0n) {
+    throw new Error(`Invalid amount: ${params.amount?.toString() || 'undefined'}`);
   }
 
   // Calculate fee and net amount (0.4% = 0.004n)
   const fee = (params.amount * BigInt(4)) / BigInt(1000); // amount * 0.004n
   const netAmount = params.amount - fee;
 
-  // Convert all proof fields to bigint (ensure proper conversion)
-  const proofAFormatted: [bigint, bigint] = [
-    BigInt(params.proofA[0]),
-    BigInt(params.proofA[1]),
-  ];
-  const proofBFormatted: [[bigint, bigint], [bigint, bigint]] = [
-    [BigInt(params.proofB[0][0]), BigInt(params.proofB[0][1])],
-    [BigInt(params.proofB[1][0]), BigInt(params.proofB[1][1])],
-  ];
-  const proofCFormatted: [bigint, bigint] = [
-    BigInt(params.proofC[0]),
-    BigInt(params.proofC[1]),
-  ];
-  const proofInputFormatted: [bigint, bigint, bigint] = [
-    BigInt(params.proofInput[0]),
-    BigInt(params.proofInput[1]),
-    BigInt(params.proofInput[2]),
-  ];
-
-  // Encode function call with validated relayer address
-  const paramsWithValidatedRelayer = {
-    ...params,
-    relayerAddress: relayerAddress as `0x${string}`,
-  };
-  const data = await encodeRelayCall(paramsWithValidatedRelayer);
-
-  // Prepare Gelato sponsored call request
-  const request: SponsoredCallRequest = {
-    chainId: BigInt(params.chainId),
-    target: relayerAddress as `0x${string}`,
-    data,
-  };
-
-  // Log attempt with masked sensitive data
+  // Mask sensitive data for logging
   const maskedRecipient = `${params.recipient.slice(0, 6)}...${params.recipient.slice(-4)}`;
-  console.log({
+  const maskedRelayer = `${relayerAddress.slice(0, 6)}...${relayerAddress.slice(-4)}`;
+
+  // Log attempt with detailed info (never empty)
+  const logData = {
     type: 'gasless-attempt',
     chainId: params.chainId,
-    relayer: `${relayerAddress.slice(0, 6)}...${relayerAddress.slice(-4)}`,
+    relayer: maskedRelayer,
     recipient: maskedRecipient,
     amount: params.amount.toString(),
     netAmount: netAmount.toString(),
     fee: fee.toString(),
     isETH: params.isETH,
-  });
+    poolIndex: params.poolIndex,
+    timestamp: new Date().toISOString(),
+  };
+  console.log('[Gasless Attempt]', JSON.stringify(logData, null, 2));
 
   try {
+    // Encode function call with validated relayer address
+    const paramsWithValidatedRelayer = {
+      ...params,
+      relayerAddress,
+    };
+    const data = await encodeRelayCall(paramsWithValidatedRelayer);
+
+    // Prepare Gelato sponsored call request
+    const request: SponsoredCallRequest = {
+      chainId: BigInt(params.chainId),
+      target: relayerAddress,
+      data,
+    };
+
     // Submit to Gelato Relay
     const taskId = await gelatoRelay.sponsoredCall(request);
 
-    // Log success
-    console.log({
+    // Log success with detailed info
+    const successLog = {
       type: 'gasless-success',
       taskId,
       chainId: params.chainId,
       status: 'pending',
-      relayer: `${relayerAddress.slice(0, 6)}...${relayerAddress.slice(-4)}`,
-    });
+      relayer: maskedRelayer,
+      timestamp: new Date().toISOString(),
+    };
+    console.log('[Gasless Success]', JSON.stringify(successLog, null, 2));
 
     return {
       taskId,
@@ -217,23 +269,46 @@ export async function submitGaslessWithdraw(
       fee,
     };
   } catch (error: any) {
-    // Log error with masked params and stack trace summary
-    const errorMessage = error?.message || 'Unknown error';
-    const stackSummary = error?.stack?.split('\n').slice(0, 3).join(' | ') || 'No stack trace';
-    
-    // Use console.error with string format for better compatibility
-    console.error('[Gasless Error]', {
+    // Enhanced error handling with detailed diagnostics
+    const errorMessage = error?.message || String(error) || 'Unknown error';
+    const errorStack = error?.stack || 'No stack trace available';
+    const stackSummary = errorStack.split('\n').slice(0, 5).join(' | ').substring(0, 300);
+
+    // Check if error is from HTML response (404, etc.)
+    let diagnosticInfo = '';
+    if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
+      diagnosticInfo = 'Edge Function returned 404 - check if /api/relayer/withdraw exists';
+    } else if (errorMessage.includes('HTML') || errorMessage.includes('<!DOCTYPE')) {
+      diagnosticInfo = 'Edge Function returned HTML instead of JSON - likely 404 or error page';
+    } else if (errorMessage.includes('JSON')) {
+      diagnosticInfo = 'Failed to parse JSON response - check Edge Function return format';
+    } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+      diagnosticInfo = 'Network error - check if Edge Function is accessible';
+    }
+
+    // Log error with comprehensive details (never empty)
+    const errorLog = {
       type: 'gasless-error',
       error: errorMessage,
+      diagnostic: diagnosticInfo || 'Unknown error type',
       chainId: params.chainId,
-      relayer: `${relayerAddress.slice(0, 6)}...${relayerAddress.slice(-4)}`,
+      relayer: maskedRelayer,
       recipient: maskedRecipient,
+      amount: params.amount.toString(),
       status: 'failed',
-      stackSummary: stackSummary.substring(0, 200), // Limit stack trace length
-    });
+      stackSummary,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Use console.error with string prefix to ensure it's never empty
+    console.error('[Gasless Error]', JSON.stringify(errorLog, null, 2));
 
     // Re-throw with descriptive error for toast
-    throw new Error(`Gelato Relay failed: ${errorMessage}`);
+    const userFriendlyMessage = diagnosticInfo 
+      ? `${diagnosticInfo}. ${errorMessage}`
+      : `Gelato Relay failed: ${errorMessage}`;
+    
+    throw new Error(userFriendlyMessage);
   }
 }
 
@@ -262,10 +337,14 @@ export async function getTaskStatus(taskId: string): Promise<{
       status: 'pending',
     };
   } catch (error: any) {
-    console.error('Failed to get task status:', error);
+    const errorMessage = error?.message || String(error) || 'Unknown error';
+    console.error('[Task Status Error]', {
+      taskId,
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+    });
     return {
       status: 'pending',
     };
   }
 }
-
