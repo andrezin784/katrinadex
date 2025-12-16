@@ -303,10 +303,8 @@ export async function submitGaslessWithdraw(
     // Use console.error with string prefix to ensure it's never empty
     console.error('[Gasless Error]', JSON.stringify(errorLog, null, 2));
 
-    // Re-throw with descriptive error for toast
-    const userFriendlyMessage = diagnosticInfo 
-      ? `${diagnosticInfo}. ${errorMessage}`
-      : `Gelato Relay failed: ${errorMessage}`;
+    // Re-throw with user-friendly error message
+    const userFriendlyMessage = `O relayer não respondeu. Seus fundos estão seguros. Você pode: (1) Tentar novamente, (2) Fazer saque normal (com gas), ou (3) Esperar e tentar mais tarde.`;
     
     throw new Error(userFriendlyMessage);
   }

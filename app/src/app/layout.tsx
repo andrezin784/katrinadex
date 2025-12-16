@@ -5,6 +5,7 @@ import ParticlesBackground from "@/components/ParticlesBackground";
 import BottomNav from "@/components/BottomNav";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
+import { PrivacyOnboarding } from "@/components/PrivacyOnboarding";
 import '@rainbow-me/rainbowkit/styles.css';
 
 const inter = Inter({ 
@@ -46,6 +47,7 @@ export default function RootLayout({
           </div>
 
           <BottomNav />
+          <PrivacyOnboarding />
           <Toaster 
             position="top-center" 
             theme="dark" 

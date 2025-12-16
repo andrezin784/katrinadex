@@ -22,7 +22,11 @@ export async function generateMixerProof(input: any) {
 
     return { proof, publicSignals };
   } catch (error) {
-    console.error("ZK Proof Generation Failed:", error);
+    // Log error without sensitive data
+    console.error("[ZK Proof] Generation failed", {
+      error: error?.message || "Unknown error",
+      timestamp: new Date().toISOString(),
+    });
     return null;
   }
 }

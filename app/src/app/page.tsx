@@ -164,27 +164,40 @@ export default function Home() {
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             </motion.div>
 
-            <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.9] tracking-tight mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-8 space-y-4"
+            >
+              <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl">
+                Seu salário veio em ETH. Você comprou USDC na Binance.
+              </p>
+              <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl">
+                Mas agora… cada transação sua é <span className="text-red-400 font-semibold">pública</span> — e <span className="text-red-400 font-semibold">rastreável</span>.
+              </p>
+              <p className="text-lg md:text-xl text-cyan-400 leading-relaxed max-w-2xl font-semibold">
+                O KatrinaDEX quebra essa cadeia — sem esconder o que é ilegal.
+              </p>
+            </motion.div>
+
+            <h1 className="text-5xl md:text-7xl font-black text-white leading-[0.9] tracking-tight mb-6">
               <span className="block">Private.</span>
               <span className="block text-gradient-static">Compliant.</span>
               <span className="block text-slate-400">Unstoppable.</span>
             </h1>
 
-            <p className="text-xl text-slate-400 mb-10 max-w-lg leading-relaxed">
-              The most advanced ZK privacy mixer built for the future. Total anonymity meets full regulatory compliance.
-            </p>
-
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/deposit">
                 <Button className="w-full sm:w-auto h-16 px-10 text-lg font-bold glow-btn text-black rounded-2xl shimmer-btn">
                   <Wallet className="w-5 h-5 mr-2" />
-                  Start Mixing
+                  Depositar com privacidade
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <Link href="/withdraw">
+              <Link href="/compliance">
                 <Button variant="outline" className="w-full sm:w-auto h-16 px-10 text-lg font-semibold border-slate-700 text-white hover:bg-white/5 rounded-2xl backdrop-blur-md group">
-                  Withdraw Funds
+                  Ver como funciona (30s)
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>

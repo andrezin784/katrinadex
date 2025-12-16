@@ -196,12 +196,8 @@ export default function WithdrawPage() {
       // Convert commitment to bytes32 format (same as deposit)
       const commitmentHex = toHex(commitment, { size: 32 });
       
-      console.log("=== COMMITMENT DEBUG ===");
-      console.log("Secret (from note):", parsedNote.secret);
-      console.log("Nullifier (from note):", parsedNote.nullifier);
-      console.log("Commitment BigInt:", commitment.toString());
-      console.log("Commitment Hex (bytes32):", commitmentHex);
-      console.log("========================");
+      // Debug logs (masked for security)
+      console.log("[Withdraw] Commitment verification started");
       
       // Check if commitment exists in contract BEFORE generating proof
       let commitmentExists = false;
@@ -242,10 +238,20 @@ export default function WithdrawPage() {
       };
 
       // 3. Generate Real ZK Proof
-      const proofData = await generateMixerProof(input);
+      let proofData;
+      try {
+        proofData = await generateMixerProof(input);
+      } catch (proofError: any) {
+        const errorMessage = proofError?.message || "Unknown error";
+        console.error("[Withdraw] Proof generation failed", {
+          error: errorMessage,
+          timestamp: new Date().toISOString(),
+        });
+        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
+      }
       
       if (!proofData) {
-        throw new Error("Failed to generate proof");
+        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
       }
 
       const { proof, publicSignals } = proofData;
@@ -257,19 +263,14 @@ export default function WithdrawPage() {
 
       setStatusMessage("Proof Generated! Sending Transaction...");
 
-      // Debug: Log proof details
-      console.log("=== ZK PROOF DEBUG ===");
-      console.log("Commitment (root):", commitment.toString());
-      console.log("NullifierHash:", nullifierHash.toString());
-      console.log("Proof A:", formattedProof.a);
-      console.log("Proof B:", formattedProof.b);
-      console.log("Proof C:", formattedProof.c);
-      console.log("Public Signals:", formattedProof.input);
-      console.log("Token Address:", tokenAddress);
-      console.log("Recipient:", recipient);
-      console.log("Amount:", parsedNote.amount);
-      console.log("Pool Index:", poolIndex);
-      console.log("====================");
+      // Debug: Log proof details (masked for security)
+      const maskedRecipient = `${recipient.slice(0, 6)}...${recipient.slice(-4)}`;
+      console.log("[Withdraw] ZK Proof generated successfully", {
+        token: parsedNote.token,
+        poolIndex,
+        recipient: maskedRecipient,
+        amount: parsedNote.amount,
+      });
 
       // 4. Send Transaction using writeContractAction from @wagmi/core
       console.log("Sending withdraw transaction...");
@@ -449,9 +450,20 @@ export default function WithdrawPage() {
         secret: secretBigInt.toString()
       };
 
-      const proofData = await generateMixerProof(input);
+      let proofData;
+      try {
+        proofData = await generateMixerProof(input);
+      } catch (proofError: any) {
+        const errorMessage = proofError?.message || "Unknown error";
+        console.error("[Gasless Withdraw] Proof generation failed", {
+          error: errorMessage,
+          timestamp: new Date().toISOString(),
+        });
+        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
+      }
+      
       if (!proofData) {
-        throw new Error("Failed to generate proof");
+        throw new Error("Sua prova ZK não foi gerada. Isso pode acontecer em dispositivos com pouca memória. Tente: (1) Recarregar, (2) Usar desktop, ou (3) Escolher um pool menor.");
       }
 
       const { proof, publicSignals } = proofData;
@@ -533,15 +545,28 @@ export default function WithdrawPage() {
           }
         }
       }, 5000); // Poll every 5 seconds
-    } catch (error: any) {
-      console.error({
-        type: 'gasless-error',
-        error: error.message,
-        chainId: chain.id,
-        status: 'failed',
-      });
-      toast.error(error?.message || "Gasless withdrawal failed");
-      setLoading(false);
+        } catch (error: any) {
+          // Mask sensitive data in logs
+          const maskedRecipient = recipient ? `${recipient.slice(0, 6)}...${recipient.slice(-4)}` : 'N/A';
+          console.error('[Gasless Withdraw Error]', {
+            type: 'gasless-error',
+            error: error?.message || 'Unknown error',
+            chainId: chain.id,
+            recipient: maskedRecipient,
+            status: 'failed',
+            timestamp: new Date().toISOString(),
+          });
+          
+          // Show user-friendly error with actionable options
+          const errorMessage = error?.message || "Gasless withdrawal failed";
+          toast.error(errorMessage, {
+            duration: 10000,
+            action: {
+              label: "Tentar novamente",
+              onClick: () => handleGaslessWithdraw(),
+            },
+          });
+          setLoading(false);
     }
   };
 

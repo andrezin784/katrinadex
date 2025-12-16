@@ -207,14 +207,8 @@ export default function DepositPage() {
       const noteString = `katrina-${tokenPrefix}-${selectedAmount.value}-${secret.toString()}-${nullifier.toString()}`;
       const commitmentHex = toHex(commitmentBigInt, { size: 32 });
 
-      // Debug: Log commitment details for verification
-      console.log("=== DEPOSIT COMMITMENT DEBUG ===");
-      console.log("Secret:", secret.toString());
-      console.log("Nullifier:", nullifier.toString());
-      console.log("Commitment BigInt:", commitmentBigInt.toString());
-      console.log("Commitment Hex (bytes32):", commitmentHex);
-      console.log("Note String:", noteString);
-      console.log("================================");
+      // Debug log (masked for security)
+      console.log("[Deposit] Commitment generated successfully");
 
       setTimeout(() => {
         setLoading(false);
