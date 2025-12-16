@@ -127,3 +127,5 @@ Se o deploy falhou:
 
 Se nada funcionar, pode ser que o domínio esteja apontando para um projeto diferente no Vercel. Verifique em **Settings** → **Domains** qual projeto está associado ao domínio.
 
+
+

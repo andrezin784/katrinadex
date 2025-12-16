@@ -57,3 +57,5 @@ Após configurar, o próximo deploy deve:
 **Nota:** Infelizmente, não é possível automatizar isso via CLI ou código. 
 O Vercel requer configuração manual no Dashboard por questões de segurança.
 
+
+

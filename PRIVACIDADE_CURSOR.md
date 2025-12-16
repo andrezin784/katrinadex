@@ -140,3 +140,5 @@ Se quiser garantir 100% de privacidade:
 
 **Nota:** O uso de Cursor ou outras ferramentas de IA não é necessariamente algo ruim ou que precise ser escondido. Muitos desenvolvedores profissionais usam essas ferramentas. Mas se você quer manter privacidade, as recomendações acima ajudam.
 
+
+

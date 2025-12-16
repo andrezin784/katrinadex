@@ -97,3 +97,5 @@ NEXT_PUBLIC_ENABLE_GASLESS=false
 - ⏳ Aguardando push para GitHub
 - ⏳ Aguardando deploy no Vercel
 
+
+

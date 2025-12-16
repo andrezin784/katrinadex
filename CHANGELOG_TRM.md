@@ -324,3 +324,5 @@ Implementação completa e funcional da Edge Function TRM, pronta para:
 
 **Status:** ✅ **Pronto para produção** (após testes no Preview)
 
+
+

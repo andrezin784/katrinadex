@@ -72,3 +72,5 @@ git push origin main
 
 Veja: `docs/TESTE_VERCEL.md` para troubleshooting completo.
 
+
+

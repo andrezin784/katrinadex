@@ -50,3 +50,5 @@ Se mesmo após configurar o Root Directory ainda der erro:
    - Veja se aparece: "Installing dependencies..."
    - Veja se encontra o `package.json`
 
+
+

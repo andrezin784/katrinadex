@@ -161,3 +161,5 @@ Para mais detalhes, veja:
 - `docs/EDGE_TRM_IMPLEMENTATION.md` - Documentação técnica
 - `docs/EDGE_TRM_TESTING.md` - Testes de regressão
 
+
+

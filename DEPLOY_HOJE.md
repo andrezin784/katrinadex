@@ -177,3 +177,5 @@ Após o deploy no Vercel, verifique:
 
 O Vercel deve fazer deploy automático em alguns minutos. Verifique o dashboard do Vercel para acompanhar o progresso.
 
+
+
