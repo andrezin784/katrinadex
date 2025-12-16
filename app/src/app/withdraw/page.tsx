@@ -18,6 +18,7 @@ import { buildPoseidon } from 'circomlibjs';
 import { SecurityWarning } from '@/components/SecurityWarning';
 import { createWithdrawGaslessTypedData, calculateFinalAmount } from '@/lib/eip712';
 import { checkAddressTRM } from '@/lib/trmCheck';
+import { submitGaslessWithdraw, getTaskStatus, calculateNetAmount } from '@/lib/relayer';
 
 export default function WithdrawPage() {
   const router = useRouter();
@@ -364,6 +365,13 @@ export default function WithdrawPage() {
   const handleGaslessWithdraw = async () => {
     if (!parsedNote || !recipient || !isConnected || !address || !chain) return;
 
+    // Check feature flag
+    const gaslessEnabled = process.env.NEXT_PUBLIC_ENABLE_GASLESS === 'true';
+    if (!gaslessEnabled) {
+      toast.error('Gasless withdraw is disabled. Set NEXT_PUBLIC_ENABLE_GASLESS=true');
+      return;
+    }
+
     try {
       setLoading(true);
       setStatusMessage("Checking compliance...");
@@ -387,54 +395,35 @@ export default function WithdrawPage() {
       setStatusMessage("Preparing gasless withdrawal...");
 
       const contracts = CONTRACTS_CONFIG[(chain.id as keyof typeof CONTRACTS_CONFIG) ?? 84532];
-      const gaslessRelayerAddress = contracts?.GASLESS_RELAYER as `0x${string}` | undefined;
+      const relayerAddress = contracts?.RELAYER as `0x${string}` | undefined;
 
-      console.log("🔍 Gasless Relayer Debug:", {
-        chainId: chain.id,
-        gaslessRelayerAddress,
-        isZeroAddress: gaslessRelayerAddress === '0x0000000000000000000000000000000000000000',
-        contractsExists: !!contracts,
-      });
-
-      // Verificação mais robusta
-      const isValidAddress = gaslessRelayerAddress && 
-        gaslessRelayerAddress !== '0x0000000000000000000000000000000000000000' &&
-        gaslessRelayerAddress.length === 42 &&
-        gaslessRelayerAddress.startsWith('0x');
-
-      if (!isValidAddress) {
-        console.error("❌ Gasless Relayer not configured:", {
-          address: gaslessRelayerAddress,
-          chainId: chain.id,
-          chainName: chain.name,
-        });
-        toast.error(`Gasless relayer not configured for ${chain.name || 'this network'}`);
+      if (!relayerAddress || relayerAddress === '0x0000000000000000000000000000000000000000') {
+        toast.error(`Relayer not configured for ${chain.name || 'this network'}`);
         setLoading(false);
         return;
       }
 
-      // Find pool index and token address (same logic as normal withdraw)
+      // Find pool index and token address
       const isArc = chain.id === 5042002;
       let tokenAddress: `0x${string}`;
       let poolIndex: number;
+      let isETH: boolean;
 
       if (parsedNote.token === 'ETH') {
         tokenAddress = contracts.ETH_ADDRESS as `0x${string}`;
         const tokenPools = isArc ? poolSizes.ETH : poolSizes.ETH;
         poolIndex = tokenPools.findIndex(p => p.value === parsedNote.amount);
+        isETH = true;
       } else if (parsedNote.token === 'USDC') {
         tokenAddress = contracts.USDC as `0x${string}`;
         const tokenPools = isArc ? poolSizes.USDC : poolSizes.USDC;
         poolIndex = tokenPools.findIndex(p => p.value === parsedNote.amount);
+        isETH = false;
       } else {
-        const eurcAddr = 'EURC' in contracts ? (contracts as any).EURC : null;
-        if (!eurcAddr) {
-          toast.error("EURC not available on this chain");
-          setLoading(false);
-          return;
-        }
-        tokenAddress = eurcAddr as `0x${string}`;
-        poolIndex = poolSizes.EURC.findIndex(p => p.value === parsedNote.amount);
+        // EURC not supported by Relayer.sol (only ETH and USDC)
+        toast.error("EURC not supported for gasless withdraw. Use normal withdraw.");
+        setLoading(false);
+        return;
       }
 
       if (poolIndex === -1) {
@@ -471,86 +460,86 @@ export default function WithdrawPage() {
         throw new Error("Invalid proof format");
       }
 
-      // Get nonce from relayer
-      setStatusMessage("Getting nonce...");
-      const nonce = await readContract(config, {
-        address: gaslessRelayerAddress,
-        abi: GASLESS_RELAYER_ABI,
-        functionName: 'getNonce',
-        args: [address],
-      }) as bigint;
+      // Calculate fee and net amount (0.4% fee)
+      const amount = BigInt(parsedNote.amount);
+      const { netAmount, fee } = calculateNetAmount(amount);
 
-      // Create EIP-712 signature
-      setStatusMessage("Signing message...");
-      const deadline = BigInt(Math.floor(Date.now() / 1000) + 3600); // 1 hour from now
-      const poolAmount = BigInt(parsedNote.amount);
-
-      const typedData = createWithdrawGaslessTypedData(
-        chain.id,
-        gaslessRelayerAddress,
-        {
-          to: recipient,
-          poolAmount,
-          poolIndex: BigInt(poolIndex),
-          token: tokenAddress,
-          nonce,
-          deadline,
-        }
-      );
-
-      const signature = await signTypedData(config, typedData);
+      // Submit to Gelato Relay
+      setStatusMessage("Submitting to Gelato Relay...");
       
-      // Send to relayer API
-      setStatusMessage("Submitting to relayer...");
-      const response = await fetch('/api/relay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: recipient,
-          poolAmount: poolAmount.toString(),
-          poolIndex,
-          token: tokenAddress,
-          proofA: formattedProof.a.map(x => x.toString()),
-          proofB: formattedProof.b.map(row => row.map(x => x.toString())),
-          proofC: formattedProof.c.map(x => x.toString()),
-          proofInput: formattedProof.input.map(x => x.toString()),
-          signature,
-          deadline: deadline.toString(),
-          chainId: chain.id,
-        }),
+      const result = await submitGaslessWithdraw({
+        relayerAddress,
+        chainId: chain.id,
+        proofA: formattedProof.a.map(x => x.toString()) as [string, string],
+        proofB: formattedProof.b.map(row => row.map(x => x.toString())) as [[string, string], [string, string]],
+        proofC: formattedProof.c.map(x => x.toString()) as [string, string],
+        proofInput: formattedProof.input.map(x => x.toString()) as [string, string, string],
+        recipient: recipient as `0x${string}`,
+        amount,
+        poolIndex,
+        token: tokenAddress,
+        isETH,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Relayer request failed');
-      }
+      console.log({
+        type: 'gasless-attempt',
+        taskId: result.taskId,
+        status: result.status,
+        netAmount: result.netAmount.toString(),
+        fee: result.fee.toString(),
+      });
 
-      const { txHash: relayTxHash } = await response.json();
-      setTxHash(relayTxHash as `0x${string}`);
       setStatusMessage("Transaction submitted! Waiting for confirmation...");
-      toast.info("Gasless withdrawal submitted. Waiting for confirmation...");
+      toast.info(`Gasless withdrawal submitted (Task ID: ${result.taskId.slice(0, 8)}...)`, {
+        description: `You will receive ${formatEther(result.netAmount)} ${parsedNote.token} (0.4% fee deducted)`,
+      });
 
-      // Poll for transaction receipt
-      try {
-        const receipt = await waitForTransactionReceipt(config, { hash: relayTxHash });
-        if (receipt.status === 'success') {
-          setSuccess(true);
-          toast.success("Gasless Withdrawal Successful!", {
-            description: "Funds have been sent to your clean address.",
-          });
-        } else {
-          toast.error("Transaction was reverted");
+      // Poll for task status
+      let attempts = 0;
+      const maxAttempts = 60; // 5 minutes max
+      let pollInterval: NodeJS.Timeout | null = null;
+      
+      pollInterval = setInterval(async () => {
+        attempts++;
+        
+        try {
+          const taskStatus = await getTaskStatus(result.taskId);
+          
+          if (taskStatus.status === 'success' && taskStatus.txHash) {
+            if (pollInterval) clearInterval(pollInterval);
+            setTxHash(taskStatus.txHash);
+            setSuccess(true);
+            toast.success("Gasless Withdrawal Successful!", {
+              description: `Transaction: ${taskStatus.txHash.slice(0, 10)}...`,
+            });
+            setLoading(false);
+          } else if (taskStatus.status === 'failed') {
+            if (pollInterval) clearInterval(pollInterval);
+            toast.error("Gasless withdrawal failed. Please try again.");
+            setLoading(false);
+          } else if (attempts >= maxAttempts) {
+            if (pollInterval) clearInterval(pollInterval);
+            toast.warning("Transaction is taking longer than expected. Check Gelato dashboard.", {
+              description: `Task ID: ${result.taskId}`,
+              duration: 15000,
+            });
+            setLoading(false);
+          }
+        } catch (error: any) {
+          console.error("Polling error:", error);
+          if (attempts >= maxAttempts) {
+            if (pollInterval) clearInterval(pollInterval);
+            setLoading(false);
+          }
         }
-      } catch (receiptError: any) {
-        console.error("Receipt error:", receiptError);
-        toast.warning("Transaction sent but confirmation failed. Check the explorer.", {
-          duration: 10000,
-        });
-      }
-
-      setLoading(false);
+      }, 5000); // Poll every 5 seconds
     } catch (error: any) {
-      console.error("Gasless withdraw failed:", error);
+      console.error({
+        type: 'gasless-error',
+        error: error.message,
+        chainId: chain.id,
+        status: 'failed',
+      });
       toast.error(error?.message || "Gasless withdrawal failed");
       setLoading(false);
     }
@@ -717,20 +706,20 @@ export default function WithdrawPage() {
                       <div className="mt-2 text-xs text-gray-300">
                         {(() => {
                           const poolAmount = BigInt(parsedNote.amount);
-                          const { finalAmount, gaslessFee } = calculateFinalAmount(poolAmount);
+                          const { netAmount, fee } = calculateNetAmount(poolAmount);
                           const isArc = chain?.id === 5042002;
                           const use18Decimals = parsedNote.token === 'ETH' || (parsedNote.token === 'USDC' && isArc);
                           const tokenSymbol = parsedNote.token === 'ETH' ? (isArc ? 'USDC' : 'ETH') : parsedNote.token;
                           const finalDisplay = use18Decimals
-                            ? formatEther(finalAmount)
-                            : (Number(finalAmount) / 1000000).toFixed(6);
+                            ? formatEther(netAmount)
+                            : (Number(netAmount) / 1000000).toFixed(6);
                           const feeDisplay = use18Decimals
-                            ? formatEther(gaslessFee)
-                            : (Number(gaslessFee) / 1000000).toFixed(6);
+                            ? formatEther(fee)
+                            : (Number(fee) / 1000000).toFixed(6);
                           return (
                             <div className="space-y-1">
                               <div>You receive: <span className="text-green-400 font-bold">{finalDisplay} {tokenSymbol}</span></div>
-                              <div>Gasless fee: <span className="text-yellow-400">{feeDisplay} {tokenSymbol}</span></div>
+                              <div>Gasless fee (0.4%): <span className="text-yellow-400">{feeDisplay} {tokenSymbol}</span></div>
                             </div>
                           );
                         })()}
