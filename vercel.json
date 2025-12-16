@@ -4,7 +4,6 @@
   "buildCommand": "cd app && npm install && npm run build",
   "outputDirectory": "app/.next",
   "installCommand": "cd app && npm install",
-  "rootDirectory": "app",
   "regions": ["iad1"],
   "github": {
     "enabled": true,
